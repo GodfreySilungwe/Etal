@@ -1,0 +1,42 @@
+import axios from 'axios'
+
+export default class ProductPresenter {
+  async getCategories() {
+    const res = await axios.get('/api/categories')
+    return res.data
+  }
+
+  async getProducts(filters = {}) {
+    const params = {}
+    if (filters.search) params.search = filters.search
+    if (filters.category_id) params.category_id = filters.category_id
+    const res = await axios.get('/api/products', { params })
+    return res.data
+  }
+
+  async getProductById(id) {
+    const res = await axios.get(`/api/products/${id}`)
+    return res.data
+  }
+
+  async subscribeNewsletter(email) {
+    const res = await axios.post('/api/newsletter', { email })
+    return res.data
+  }
+
+  async createInvoice(payload) {
+    // payload: { customer_name, phone, email, product_details }
+    const res = await axios.post('/api/invoice-requests', payload)
+    return res.data
+  }
+
+  async createInstallation(payload) {
+    const res = await axios.post('/api/installation-requests', payload)
+    return res.data
+  }
+
+  async createDelivery(payload) {
+    const res = await axios.post('/api/delivery-requests', payload)
+    return res.data
+  }
+}

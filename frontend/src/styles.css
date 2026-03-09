@@ -1,0 +1,51 @@
+:root{
+	--bg-1: #f6fbff;
+	--bg-2: #eaf4ff;
+	--primary: #0b66ff;
+	--primary-600: #0956d9;
+	--accent: #ff7a18;
+	--muted: #6b7280;
+	--card-bg: #ffffff;
+	--success: #16a34a;
+	--danger: #ef4444;
+}
+
+*{box-sizing:border-box}
+body { font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; margin: 0; padding: 0; background: linear-gradient(180deg,var(--bg-1),var(--bg-2)); color:#0f172a }
+
+.nav { display:flex; gap:12px; padding:14px 16px; background: linear-gradient(90deg,var(--primary),var(--primary-600)); color:white; align-items:center }
+.nav button { background:transparent; color:white; border:1px solid rgba(255,255,255,0.18); padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:600 }
+.nav button:hover { background: rgba(255,255,255,0.06) }
+
+.app main { padding:22px; max-width:1100px; margin:18px auto }
+
+.grid { display:flex; gap:16px; flex-wrap:wrap }
+.card { background:var(--card-bg); border-radius:12px; padding:14px; width:240px; box-shadow: 0 6px 18px rgba(15,23,42,0.06); transition:transform .12s ease, box-shadow .12s ease }
+.card:hover{ transform:translateY(-6px); box-shadow:0 12px 30px rgba(15,23,42,0.12) }
+.card h3{ margin:0 0 6px 0; font-size:1.05rem }
+.card p{ margin:6px 0; color:var(--muted); font-size:0.95rem }
+
+.newsletter { margin-top:12px; display:flex; gap:8px }
+.newsletter input { padding:10px 12px; border-radius:8px; border:1px solid #e6eefb; width:260px }
+.newsletter button { background:var(--accent); color:white; border:none; padding:10px 14px; border-radius:8px; cursor:pointer }
+
+/* Buttons */
+button.primary { background:var(--primary); color:white; border:none; padding:10px 12px; border-radius:8px; cursor:pointer }
+button.ghost { background:transparent; border:1px solid #e6eefb; padding:8px 10px; border-radius:8px }
+
+/* Admin styles */
+.admin-login { max-width:420px; display:flex; flex-direction:column; gap:10px; background: linear-gradient(180deg,#ffffff, #fbfdff); padding:16px; border-radius:10px; box-shadow:0 8px 24px rgba(2,6,23,0.06) }
+.admin-grid { display:flex; gap:20px }
+.admin-list { flex:1 }
+.admin-form { width:420px; }
+.admin-form input, .admin-form textarea, .admin-login input, .admin-login button, .admin-form select { width:100%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #eef6ff }
+.admin-form .thumb img { max-width:180px; max-height:140px; display:block; margin-top:8px; border-radius:6px }
+.errors { background:#fff7f7; border:1px solid #ffd4d4; padding:10px; margin-bottom:10px; color:var(--danger) }
+
+/* Forms and inputs */
+input, textarea, select { font-family:inherit }
+form { background:transparent }
+
+/* Misc */
+.filters input, .filters select { padding:10px; border-radius:8px; border:1px solid #e6eefb }
+
