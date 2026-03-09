@@ -104,7 +104,7 @@ function ProductsAdmin({ presenter }) {
             <input placeholder="Name" value={form.name} onChange={e=>setForm({...form, name:e.target.value})} />
             <select value={form.category_id} onChange={e=>setForm({...form, category_id:e.target.value})}>
               <option value=''>-- Select Category --</option>
-              {categories.map(c=> <option key={c.id} value={c.id}>{c.name}</option>)}
+              {Array.isArray(categories) ? categories.map(c=> <option key={c.id} value={c.id}>{c.name}</option>) : null}
             </select>
             <input placeholder="Description" value={form.description} onChange={e=>setForm({...form, description:e.target.value})} />
             <input placeholder="Price" value={form.price} onChange={e=>setForm({...form, price:e.target.value})} />
@@ -132,7 +132,7 @@ function CategoriesAdmin({ presenter }){
     <div>
       <h3>Categories</h3>
       <ul>
-        {categories.map(c=> <li key={c.id}>{c.name} <button onClick={()=>del(c.id)}>Delete</button></li>)}
+        {Array.isArray(categories) ? categories.map(c=> <li key={c.id}>{c.name} <button onClick={()=>del(c.id)}>Delete</button></li>) : null}
       </ul>
       <form onSubmit={add}><input placeholder="Name" value={name} onChange={e=>setName(e.target.value)} /><button>Add</button></form>
     </div>

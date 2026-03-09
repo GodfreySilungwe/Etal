@@ -2,7 +2,7 @@ const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
-const connectionString = process.env.DATABASE_URL || 'postgresql://user:password@localhost:5432/etal_db';
+const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:Silungwe%402025@localhost:5432/ETALDB';
 const pool = new Pool({ connectionString });
 
 async function initDb() {

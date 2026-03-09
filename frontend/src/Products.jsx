@@ -37,11 +37,13 @@ export default function Products({ presenter, onSelect }) {
         <input placeholder="Search products" value={search} onChange={(e) => setSearch(e.target.value)} />
         <select value={category} onChange={(e) => setCategory(e.target.value)}>
           <option value="">All categories</option>
-          {categories.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
+          {Array.isArray(categories)
+            ? categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))
+            : null}
         </select>
       </div>
 

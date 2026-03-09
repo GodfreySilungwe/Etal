@@ -4,6 +4,8 @@ import Admin from './Admin'
 import ProductDetails from './ProductDetails'
 import Cart from './Cart'
 import ProductPresenter from './presenters/ProductPresenter'
+import AdminPresenter from './presenters/AdminPresenter'
+import ErrorBoundary from './ErrorBoundary'
 import Products from './Products'
 import InstallationRequest from './InstallationRequest'
 import DeliveryRequest from './DeliveryRequest'
@@ -12,11 +14,11 @@ import Checkout from './Checkout'
 function Nav({ setView }) {
   return (
     <nav className="nav">
-      <button onClick={() => setView('home')}>Home</button>
-      <button onClick={() => setView('products')}>Products</button>
-      <button onClick={() => setView('contact')}>Contact</button>
-      <button onClick={() => setView('admin')}>Admin</button>
-      <button onClick={() => setView('cart')}>Cart</button>
+      <button onClick={() => { console.log('Nav: home'); setView('home') }}>Home</button>
+      <button onClick={() => { console.log('Nav: products'); setView('products') }}>Products</button>
+      <button onClick={() => { console.log('Nav: contact'); setView('contact') }}>Contact</button>
+      <button onClick={() => { console.log('Nav: admin'); setView('admin') }}>Admin</button>
+      <button onClick={() => { console.log('Nav: cart'); setView('cart') }}>Cart</button>
     </nav>
   )
 }
@@ -59,7 +61,14 @@ export default function App() {
   const [selectedProductId, setSelectedProductId] = useState(null)
   const [cart, setCart] = useState(JSON.parse(localStorage.getItem('etal_cart')||'[]'))
   const [presenter] = useState(() => new ProductPresenter())
-  const [adminPresenter] = useState(() => new (require('./presenters/AdminPresenter').default)())
+  const [adminPresenter] = useState(() => new AdminPresenter())
+
+  useEffect(()=>{
+    console.log('App mounted. initial view=', view)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[])
+
+  useEffect(()=>{ console.log('App view changed ->', view) }, [view])
 
   // ensure axios header uses stored token
   useEffect(()=>{
@@ -94,17 +103,19 @@ export default function App() {
   return (
     <div className="app">
       <Nav setView={setView} />
-      <main>
-        {view === 'home' && <Home presenter={presenter} />}
-        {view === 'products' && <Products presenter={presenter} onSelect={(id)=>{ setSelectedProductId(id); setView('details') }} />}
-        {view === 'contact' && <Contact />}
-        {view === 'installation' && <InstallationRequest presenter={presenter} />}
-        {view === 'delivery' && <DeliveryRequest presenter={presenter} />}
-        {view === 'details' && <ProductDetails presenter={presenter} id={selectedProductId} onBack={()=>setView('products')} onAddToCart={(p)=>{ addToCart(p) }} />}
-        {view === 'cart' && <Cart presenter={presenter} items={cart} onRemove={removeFromCart} onCheckoutNavigate={()=>setView('checkout')} />}
-        {view === 'checkout' && <Checkout presenter={presenter} cart={cart} onComplete={() => { setCart([]); localStorage.removeItem('etal_cart'); setView('home') }} />}
-        {view === 'admin' && <Admin presenter={adminPresenter} token={token} onLogout={()=>{ setToken(null); localStorage.removeItem('etal_token'); delete axios.defaults.headers.common['Authorization'] }} onAuth={(t)=>{ setToken(t) }} />}
-      </main>
+      <ErrorBoundary>
+        <main>
+          {view === 'home' && <Home presenter={presenter} />}
+          {view === 'products' && <Products presenter={presenter} onSelect={(id)=>{ setSelectedProductId(id); setView('details') }} />}
+          {view === 'contact' && <Contact />}
+          {view === 'installation' && <InstallationRequest presenter={presenter} />}
+          {view === 'delivery' && <DeliveryRequest presenter={presenter} />}
+          {view === 'details' && <ProductDetails presenter={presenter} id={selectedProductId} onBack={()=>setView('products')} onAddToCart={(p)=>{ addToCart(p) }} />}
+          {view === 'cart' && <Cart presenter={presenter} items={cart} onRemove={removeFromCart} onCheckoutNavigate={()=>setView('checkout')} />}
+          {view === 'checkout' && <Checkout presenter={presenter} cart={cart} onComplete={() => { setCart([]); localStorage.removeItem('etal_cart'); setView('home') }} />}
+          {view === 'admin' && <Admin presenter={adminPresenter} token={token} onLogout={()=>{ setToken(null); localStorage.removeItem('etal_token'); delete axios.defaults.headers.common['Authorization'] }} onAuth={(t)=>{ setToken(t) }} />}
+        </main>
+      </ErrorBoundary>
     </div>
   )
 }

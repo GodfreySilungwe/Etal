@@ -2,10 +2,44 @@ import React, { useEffect, useState } from 'react'
 
 export default function ProductDetails({ id, onBack, onAddToCart, presenter }){
   const [p, setP] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+
   useEffect(()=>{
-    if(!id) return; presenter.getProductById(id).then(r=>setP(r)).catch(()=>setP(null))
+    let mounted = true
+    async function load(){
+      if(!id) return
+      setLoading(true)
+      setError(null)
+      try{
+        const r = await presenter.getProductById(id)
+        if(mounted) setP(r)
+      }catch(e){
+        console.error('Failed to load product', e)
+        if(mounted) setError(e.message || 'Failed to load product')
+      }finally{
+        if(mounted) setLoading(false)
+      }
+    }
+    load()
+    return ()=>{ mounted = false }
   },[id, presenter])
-  if(!p) return <div>Loading...</div>
+
+  if(loading) return <div>Loading product...</div>
+  if(error) return (
+    <div>
+      <button onClick={onBack}>Back</button>
+      <h3>Error</h3>
+      <p>{error}</p>
+    </div>
+  )
+  if(!p) return (
+    <div>
+      <button onClick={onBack}>Back</button>
+      <p>Product not found.</p>
+    </div>
+  )
+
   return (
     <div>
       <button onClick={onBack}>Back</button>
