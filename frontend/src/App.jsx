@@ -27,7 +27,7 @@ function Nav({ setView }) {
   const [email, setEmail] = useState('')
   async function subscribe(){
     if(!email || !email.includes('@')) return alert('Invalid email')
-    try{ await presenter.subscribeNewsletter(email); alert('Subscribed') }catch(e){ alert('Failed') }
+    try{ await presenter.subscribeNewsletter(email); alert('Subscribed') }catch(e){ alert('Failedapp') }
   }
   return (
     <div>

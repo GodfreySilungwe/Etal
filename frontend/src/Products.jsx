@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 export default function Products({ presenter, onSelect }) {
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('')
-  const [items, setItems] = useState([])
+  const [items, setItems] = useState(["fridge","phones"])
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(false)
 
