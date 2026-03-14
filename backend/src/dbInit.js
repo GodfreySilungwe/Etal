@@ -14,6 +14,8 @@ async function initDb() {
     category_id INTEGER,
     description TEXT,
     price NUMERIC,
+    original_price NUMERIC,
+    discount_percent INTEGER DEFAULT 0,
     specs JSONB,
     image_url TEXT
   );
@@ -72,6 +74,10 @@ async function initDb() {
 
   await pool.query(sql);
 
+  // Add new columns if not exist
+  await pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS original_price NUMERIC`);
+  await pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS discount_percent INTEGER DEFAULT 0`);
+
   // Seed a default category and sample product if none exist
   const catRes = await pool.query('SELECT COUNT(*) FROM categories');
   if (Number(catRes.rows[0].count) === 0) {
@@ -83,12 +89,14 @@ async function initDb() {
     const c = await pool.query('SELECT id FROM categories WHERE name=$1 LIMIT 1', ['Fridges']);
     const catId = c.rows[0] ? c.rows[0].id : null;
     await pool.query(
-      `INSERT INTO products(name, category_id, description, price, specs, image_url) VALUES($1,$2,$3,$4,$5,$6)`,
+      `INSERT INTO products(name, category_id, description, price, original_price, discount_percent, specs, image_url) VALUES($1,$2,$3,$4,$5,$6,$7,$8)`,
       [
         'Sample Fridge Model X',
         catId,
         'Energy efficient fridge with 300L capacity',
         499.99,
+        499.99,
+        0,
         JSON.stringify({ capacity: '300L', energy_rating: 'A+' }),
         ''
       ]

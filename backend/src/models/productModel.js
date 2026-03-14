@@ -26,19 +26,19 @@ async function getById(id) {
 }
 
 async function create(product) {
-  const { name, category_id, description, price, specs, image_url } = product;
+  const { name, category_id, description, price, original_price, discount_percent, specs, image_url } = product;
   const res = await pool.query(
-    'INSERT INTO products(name, category_id, description, price, specs, image_url) VALUES($1,$2,$3,$4,$5,$6) RETURNING *',
-    [name, category_id || null, description || null, price || null, specs ? JSON.stringify(specs) : null, image_url || null]
+    'INSERT INTO products(name, category_id, description, price, original_price, discount_percent, specs, image_url) VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *',
+    [name, category_id || null, description || null, price || null, original_price || null, discount_percent || 0, specs ? JSON.stringify(specs) : null, image_url || null]
   );
   return res.rows[0];
 }
 
 async function update(id, product) {
-  const { name, category_id, description, price, specs, image_url } = product;
+  const { name, category_id, description, price, original_price, discount_percent, specs, image_url } = product;
   const res = await pool.query(
-    'UPDATE products SET name=$1, category_id=$2, description=$3, price=$4, specs=$5, image_url=$6 WHERE id=$7 RETURNING *',
-    [name, category_id || null, description || null, price || null, specs ? JSON.stringify(specs) : null, image_url || null, id]
+    'UPDATE products SET name=$1, category_id=$2, description=$3, price=$4, original_price=$5, discount_percent=$6, specs=$7, image_url=$8 WHERE id=$9 RETURNING *',
+    [name, category_id || null, description || null, price || null, original_price || null, discount_percent || 0, specs ? JSON.stringify(specs) : null, image_url || null, id]
   );
   return res.rows[0];
 }

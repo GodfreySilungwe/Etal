@@ -14,6 +14,7 @@ import Checkout from './Checkout'
 function Nav({ setView }) {
   return (
     <nav className="nav">
+      <img src="/uploads/Log.png" alt="ETAL Logo" style={{ height: '40px', marginRight: '20px' }} />
       <button onClick={() => { console.log('Nav: home'); setView('home') }}>Home</button>
       <button onClick={() => { console.log('Nav: products'); setView('products') }}>Products</button>
       <button onClick={() => { console.log('Nav: contact'); setView('contact') }}>Contact</button>
@@ -23,20 +24,85 @@ function Nav({ setView }) {
   )
 }
 
-  function Home({ presenter }) {
+  function Home({ presenter, onSelect }) {
   const [email, setEmail] = useState('')
+  const [categories, setCategories] = useState([])
+  const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
+
   async function subscribe(){
     if(!email || !email.includes('@')) return alert('Invalid email')
-    try{ await presenter.subscribeNewsletter(email); alert('Subscribed') }catch(e){ alert('Failedapp') }
+    try{ await presenter.subscribeNewsletter(email); alert('Subscribed') }catch(e){ alert('Failed') }
   }
+
+  useEffect(() => {
+    async function load() {
+      setLoading(true)
+      try {
+        const [cats, prods] = await Promise.all([
+          presenter.getCategories(),
+          presenter.getProducts()
+        ])
+        setCategories(cats)
+        setProducts(prods)
+      } catch (e) {
+        console.error(e)
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
+  }, [presenter])
+
+  // Group products by category
+  const productsByCategory = categories.reduce((acc, cat) => {
+    acc[cat.id] = products.filter(p => p.category_id === cat.id)
+    return acc
+  }, {})
+
   return (
     <div>
-      <h1>ETAL Enterprise</h1>
-      <p>Opposite Central Hospital — Phone: +265 995 718 815</p>
-      <h2>Featured Products</h2>
-      <p>Check our products page for full catalog.</p>
+      <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+        <h1>Welcome to ETAL Enterprise</h1>
+        <p>Your Trusted Partner for Quality Electronics</p>
+        <p>Opposite Central Hospital — Phone: +265 995 718 815</p>
+      </div>
+
+      {loading ? (
+        <p>Loading products...</p>
+      ) : (
+        categories.map(cat => (
+          productsByCategory[cat.id] && productsByCategory[cat.id].length > 0 && (
+            <div key={cat.id} style={{ marginBottom: '40px' }}>
+              <h2>{cat.name}</h2>
+              <div className="grid">
+                {productsByCategory[cat.id].map(p => (
+                  <div key={p.id} className="card" style={{ cursor: 'pointer', backgroundImage: p.image_url ? `url(${p.image_url})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center', color: p.image_url ? 'white' : 'inherit' }} onClick={() => onSelect(p.id)}>
+                    <div style={{ background: p.image_url ? 'rgba(0,0,0,0.6)' : 'transparent', padding: '14px', borderRadius: '12px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                      <h3>{p.name}</h3>
+                      <div>
+                        {p.discount_percent > 0 ? (
+                          <div>
+                            <p style={{ textDecoration: 'line-through', color: '#ccc' }}>Original: ${p.original_price}</p>
+                            <p style={{ fontWeight: 'bold', color: 'var(--accent)' }}>Now: ${p.price} ({p.discount_percent}% off)</p>
+                          </div>
+                        ) : (
+                          <p style={{ fontWeight: 'bold', color: 'var(--primary)' }}>Price: ${p.price}</p>
+                        )}
+                        <p>{p.description?.slice(0, 60)}...</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )
+        ))
+      )}
+
       <div className="newsletter">
-        <input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <h3>Subscribe to our Newsletter</h3>
+        <input placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)} />
         <button onClick={subscribe}>Subscribe</button>
       </div>
     </div>
@@ -105,7 +171,7 @@ export default function App() {
       <Nav setView={setView} />
       <ErrorBoundary>
         <main>
-          {view === 'home' && <Home presenter={presenter} />}
+          {view === 'home' && <Home presenter={presenter} onSelect={(id)=>{ setSelectedProductId(id); setView('details') }} />}
           {view === 'products' && <Products presenter={presenter} onSelect={(id)=>{ setSelectedProductId(id); setView('details') }} />}
           {view === 'contact' && <Contact />}
           {view === 'installation' && <InstallationRequest presenter={presenter} />}

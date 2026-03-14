@@ -30,12 +30,21 @@ function Login({ onLogin, presenter }) {
   )
 }
 
-function ProductsAdmin({ presenter }) {
+function ProductsAdmin({ presenter, token }) {
   const [products, setProducts] = useState([])
   const [editing, setEditing] = useState(null)
   const [categories, setCategories] = useState([])
-  const [form, setForm] = useState({ name:'', category_id:'', description:'', price:'', specs:'', image_url:'' })
+  const [form, setForm] = useState({ name:'', category_id:'', description:'', price:'', original_price:'', discount_percent:'', specs:'', image_url:'' })
   const [errors, setErrors] = useState([])
+
+  async function uploadImage(file) {
+    const formData = new FormData();
+    formData.append('image', file);
+    const res = await axios.post('http://localhost:4000/api/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data', 'Authorization': `Bearer ${token}` }
+    });
+    return res.data.url;
+  }
 
   async function load() {
     try{
@@ -52,7 +61,7 @@ function ProductsAdmin({ presenter }) {
 
   function startEdit(p){
     setEditing(p.id)
-    setForm({ name:p.name||'', category_id:p.category_id||'', description:p.description||'', price:p.price||'', specs: p.specs ? JSON.stringify(p.specs) : '', image_url:p.image_url||'' })
+    setForm({ name:p.name||'', category_id:p.category_id||'', description:p.description||'', price:p.price||'', original_price:p.original_price||'', discount_percent:p.discount_percent||'', specs: p.specs ? JSON.stringify(p.specs) : '', image_url:p.image_url||'' })
   }
 
   async function submit(e){
@@ -64,14 +73,14 @@ function ProductsAdmin({ presenter }) {
     if(errs.length){ setErrors(errs); return }
     setErrors([])
     try{
-      const payload = { name: form.name, category_id: form.category_id || null, description: form.description, price: form.price || null, specs: form.specs ? JSON.parse(form.specs) : null, image_url: form.image_url }
+      const payload = { name: form.name, category_id: form.category_id || null, description: form.description, price: form.price || null, original_price: form.original_price || null, discount_percent: form.discount_percent || 0, specs: form.specs ? JSON.parse(form.specs) : null, image_url: form.image_url }
       if(editing){
         await presenter.updateProduct(editing, payload)
       } else {
         await presenter.createProduct(payload)
       }
       setEditing(null)
-      setForm({ name:'', category_id:'', description:'', price:'', specs:'', image_url:'' })
+      setForm({ name:'', category_id:'', description:'', price:'', original_price:'', discount_percent:'', specs:'', image_url:'' })
       load()
     }catch(err){ alert('Save failed') }
   }
@@ -110,6 +119,8 @@ function ProductsAdmin({ presenter }) {
             </select>
             <input placeholder="Description" value={form.description} onChange={e=>setForm({...form, description:e.target.value})} />
             <input placeholder="Price" value={form.price} onChange={e=>setForm({...form, price:e.target.value})} />
+            <input placeholder="Original Price" value={form.original_price} onChange={e=>setForm({...form, original_price:e.target.value})} />
+            <input placeholder="Discount Percent" value={form.discount_percent} onChange={e=>setForm({...form, discount_percent:e.target.value})} />
             <textarea placeholder='Specs JSON' value={form.specs} onChange={e=>setForm({...form, specs:e.target.value})} />
             <div>
               <input type="file" accept="image/*" onChange={async(e)=>{ const url = await uploadImage(e.target.files[0]); if(url) setForm({...form, image_url:url}) }} />
@@ -158,7 +169,7 @@ export default function Admin({ token, onLogout, onAuth, presenter }){
         <h2>Admin Dashboard</h2>
         <div><button onClick={logout}>Logout</button></div>
       </div>
-      <ProductsAdmin presenter={presenter} />
+      <ProductsAdmin presenter={presenter} token={token} />
       <CategoriesAdmin presenter={presenter} />
     </div>
   )
