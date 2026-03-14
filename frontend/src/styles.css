@@ -1,17 +1,17 @@
 :root{
-	--bg-1: #f6fbff;
-	--bg-2: #eaf4ff;
-	--primary: #0b66ff;
-	--primary-600: #0956d9;
-	--accent: #ff7a18;
-	--muted: #6b7280;
-	--card-bg: #ffffff;
+	--bg-1: #0e0e0e;
+	--bg-2: #141414;
+	--primary: #c8102e;
+	--primary-600: #9b0f25;
+	--accent: #ffffff;
+	--muted: #c1c1c1;
+	--card-bg: #1c1c1c;
 	--success: #16a34a;
 	--danger: #ef4444;
 }
 
 *{box-sizing:border-box}
-body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background: linear-gradient(rgba(255,255,255,0.72), rgba(255,255,255,0.72)), url('/uploads/background.png') no-repeat center center fixed; background-size: cover; color:#0f172a }
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background: radial-gradient(circle at top, rgba(200,16,46,0.25), rgba(0,0,0,1)), url('/uploads/background.png') no-repeat center center fixed; background-size: cover; color:#f5f5f5 }
 
 .nav { position: sticky; top: 0; z-index: 50; display:flex; justify-content: space-between; gap:12px; padding:14px 16px; background: linear-gradient(90deg,var(--primary),var(--primary-600)); color:white; align-items:center; box-shadow: 0 4px 8px rgba(0,0,0,0.12); font-weight: 600; font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont; letter-spacing: 0.03em; text-transform: uppercase; }
 .nav .nav-group { display:flex; gap:12px; align-items:center }
@@ -22,12 +22,12 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; 
 .app main { padding:22px; max-width:1100px; margin:18px auto }
 
 .grid { display:flex; gap:16px; flex-wrap:wrap }
-.card { background:var(--card-bg); border-radius:12px; padding:0; width:240px; box-shadow: 0 6px 18px rgba(15,23,42,0.06); transition:transform .12s ease, box-shadow .12s ease; font-family: inherit; overflow: hidden }
+.card { background:var(--card-bg); border-radius:12px; padding:0; width:240px; box-shadow: 0 6px 18px rgba(0,0,0,0.45); transition:transform .12s ease, box-shadow .12s ease; font-family: inherit; overflow: hidden }
 
 .rainbow-text {
   font-size: 2.6rem;
   font-weight: 800;
-  background: linear-gradient(90deg, #ff5f6d, #ffc371, #6a11cb, #2575fc);
+  background: linear-gradient(90deg, rgba(200,16,46,1), rgba(255,255,255,0.85));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
