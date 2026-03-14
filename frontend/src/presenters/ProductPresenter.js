@@ -42,4 +42,9 @@ export default class ProductPresenter {
     const res = await axios.post('http://localhost:4000/api/delivery-requests', payload)
     return res.data
   }
+
+  async getSalesReport() {
+    const res = await axios.get('http://localhost:4000/api/reports/sales')
+    return res.data
+  }
 }

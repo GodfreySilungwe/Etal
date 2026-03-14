@@ -63,7 +63,7 @@ function Nav({ setView }) {
   return (
     <div>
       <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-        <h1>Welcome to ETAL Enterprise</h1>
+        <h1 className="rainbow-text">Welcome to ETAL Enterprise</h1>
         <p>Your Trusted Partner for Quality Electronics</p>
         <p>Opposite Central Hospital — Phone: +265 995 718 815</p>
       </div>
