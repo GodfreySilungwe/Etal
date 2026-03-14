@@ -107,16 +107,6 @@ function Nav({ setView, cartCount }) {
                         )}
                         <p style={{ margin: '8px 0 0' }}>{p.description?.slice(0, 60)}...</p>
                         <button style={{ marginTop: 10, width: '100%', padding: '10px 0', borderRadius: 8, border: 'none', background: 'var(--primary)', color: 'white', cursor: 'pointer' }} onClick={(e)=>{ e.stopPropagation(); onAddToCart(p) }}>Add to cart</button>
-                        {p.installation_price && onRequestInstallation && (
-                          <button style={{ marginTop: 8, width: '100%', padding: '10px 0', borderRadius: 8, border: 'none', background: '#a00', color: 'white', cursor: 'pointer' }} onClick={(e)=>{ e.stopPropagation(); onRequestInstallation(p, p.installation_price) }}>
-                            Request Installation ({fmtMK(p.installation_price)})
-                          </button>
-                        )}
-                        {p.delivery_price && onRequestDelivery && (
-                          <button style={{ marginTop: 8, width: '100%', padding: '10px 0', borderRadius: 8, border: 'none', background: '#a00', color: 'white', cursor: 'pointer' }} onClick={(e)=>{ e.stopPropagation(); onRequestDelivery(p, p.delivery_price) }}>
-                            Request Delivery ({fmtMK(p.delivery_price)})
-                          </button>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -152,7 +142,11 @@ export default function App() {
   const [view, setView] = useState('home')
   const [token, setToken] = useState(localStorage.getItem('etal_token') || null)
   const [selectedProductId, setSelectedProductId] = useState(null)
-  const [cart, setCart] = useState(JSON.parse(localStorage.getItem('etal_cart')||'[]'))
+  const [cart, setCart] = useState(() => {
+    const storedCart = JSON.parse(localStorage.getItem('etal_cart')||'[]')
+    // Ensure all items have quantity property for backward compatibility
+    return storedCart.map(item => ({ ...item, quantity: item.quantity || 1 }))
+  })
   const [requestContext, setRequestContext] = useState(null)
   const [presenter] = useState(() => new ProductPresenter())
   const [adminPresenter] = useState(() => new AdminPresenter())
@@ -203,14 +197,48 @@ export default function App() {
   }
 
   function addToCart(product){
-    const next = [...cart, { ...product, original_price: product.original_price, discount_percent: product.discount_percent }]
+    const existingIndex = cart.findIndex(item => item.id === product.id)
+    let next
+    
+    if (existingIndex >= 0) {
+      // Item already exists, increment quantity
+      next = cart.map((item, index) => 
+        index === existingIndex 
+          ? { ...item, quantity: (item.quantity || 1) + 1 }
+          : item
+      )
+    } else {
+      // New item, add with quantity 1
+      next = [...cart, { ...product, original_price: product.original_price, discount_percent: product.discount_percent, quantity: 1 }]
+    }
+    
     setCart(next)
     localStorage.setItem('etal_cart', JSON.stringify(next))
     alert('Added to cart')
   }
 
   function removeFromCart(idx){
-    const next = cart.filter((_,i)=>i!==idx)
+    const item = cart[idx]
+    let next
+    
+    if (item.quantity > 1) {
+      // Decrement quantity
+      next = cart.map((cartItem, index) => 
+        index === idx 
+          ? { ...cartItem, quantity: cartItem.quantity - 1 }
+          : cartItem
+      )
+    } else {
+      // Remove item if quantity is 1
+      next = cart.filter((_,i)=>i!==idx)
+    }
+    
+    setCart(next)
+    localStorage.setItem('etal_cart', JSON.stringify(next))
+  }
+
+  function updateCartItem(idx, updates){
+    const next = cart.map((item, i) => i === idx ? { ...item, ...updates } : item)
     setCart(next)
     localStorage.setItem('etal_cart', JSON.stringify(next))
   }
@@ -223,7 +251,7 @@ export default function App() {
 
   return (
     <div className="app">
-      <Nav setView={setView} cartCount={cart.length} />
+      <Nav setView={setView} cartCount={cart.reduce((total, item) => total + (item.quantity || 1), 0)} />
       <ErrorBoundary>
         <main>
           {view === 'home' && <Home presenter={presenter} onSelect={(id)=>{ setSelectedProductId(id); setView('details') }} onAddToCart={addToCart} onRequestInstallation={requestInstallation} onRequestDelivery={requestDelivery} />}
@@ -233,7 +261,7 @@ export default function App() {
           {view === 'installation' && <InstallationRequest presenter={presenter} requestContext={requestContext} />}
           {view === 'delivery' && <DeliveryRequest presenter={presenter} requestContext={requestContext} />}
           {view === 'details' && <ProductDetails presenter={presenter} id={selectedProductId} onBack={()=>setView('products')} onAddToCart={(p)=>{ addToCart(p) }} onRequestInstallation={requestInstallation} onRequestDelivery={requestDelivery} />}
-          {view === 'cart' && <Cart presenter={presenter} items={cart} onRemove={removeFromCart} onCheckoutNavigate={()=>setView('checkout')} />}
+          {view === 'cart' && <Cart presenter={presenter} items={cart} onRemove={removeFromCart} onUpdateItem={updateCartItem} onCheckoutNavigate={()=>setView('checkout')} onRequestInstallation={requestInstallation} onRequestDelivery={requestDelivery} />}
           {view === 'checkout' && <Checkout presenter={presenter} cart={cart} onComplete={() => { setCart([]); localStorage.removeItem('etal_cart'); setView('home') }} />}
           {view === 'admin' && <Admin presenter={adminPresenter} token={token} onLogout={()=>{ setToken(null); localStorage.removeItem('etal_token'); delete axios.defaults.headers.common['Authorization'] }} onAuth={(t)=>{ setToken(t) }} />}
         </main>

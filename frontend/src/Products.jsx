@@ -89,16 +89,6 @@ export default function Products({ presenter, onSelect, onAddToCart, onRequestIn
                   <p style={{ margin: '8px 0 0' }}>{p.description?.slice(0, 60)}...</p>
                   <p style={{ margin: '6px 0 0', fontSize: '0.9rem', opacity: 0.9 }}>Stock: {p.stock ?? 0}</p>
                   <button style={{ marginTop: 10, width: '100%', padding: '10px 0', borderRadius: 8, border: 'none', background: 'var(--primary)', color: 'white', cursor: 'pointer' }} onClick={(e)=>{ e.stopPropagation(); onAddToCart(p) }}>Add to cart</button>
-                  {p.installation_price && onRequestInstallation && (
-                    <button style={{ marginTop: 8, width: '100%', padding: '10px 0', borderRadius: 8, border: 'none', background: '#a00', color: 'white', cursor: 'pointer' }} onClick={(e)=>{ e.stopPropagation(); onRequestInstallation(p, p.installation_price) }}>
-                      Request Installation ({fmtMK(p.installation_price)})
-                    </button>
-                  )}
-                  {p.delivery_price && onRequestDelivery && (
-                    <button style={{ marginTop: 8, width: '100%', padding: '10px 0', borderRadius: 8, border: 'none', background: '#a00', color: 'white', cursor: 'pointer' }} onClick={(e)=>{ e.stopPropagation(); onRequestDelivery(p, p.delivery_price) }}>
-                      Request Delivery ({fmtMK(p.delivery_price)})
-                    </button>
-                  )}
                 </div>
               </div>
             </div>
