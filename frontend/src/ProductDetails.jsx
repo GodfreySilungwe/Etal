@@ -46,7 +46,14 @@ export default function ProductDetails({ id, onBack, onAddToCart, presenter }){
       <h2>{p.name}</h2>
       <p>Category: {p.category}</p>
       <p>{p.description}</p>
-      <p>Price: {p.price}</p>
+      {p.discount_percent > 0 ? (
+        <div>
+          <p style={{ textDecoration: 'line-through', color: 'var(--danger)', margin: 0 }}>Original: ${p.original_price}</p>
+          <p style={{ fontWeight: 'bold', color: 'var(--success)', margin: '4px 0 0' }}>Now: ${p.price} <span style={{ color: 'var(--success)' }}>({p.discount_percent}% off)</span></p>
+        </div>
+      ) : (
+        <p style={{ fontWeight: 'bold', color: 'var(--success)' }}>Price: ${p.price}</p>
+      )}
       {p.image_url && <img src={p.image_url} alt={p.name} style={{maxWidth:320}} />}
       <div>
         <button onClick={()=>onAddToCart(p)}>Add to cart</button>

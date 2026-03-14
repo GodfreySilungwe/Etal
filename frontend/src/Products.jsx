@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 
-export default function Products({ presenter, onSelect }) {
+export default function Products({ presenter, onSelect, onAddToCart }) {
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('')
   const [items, setItems] = useState(["fridge","phones"])
@@ -74,14 +74,15 @@ export default function Products({ presenter, onSelect }) {
                 <div>
                   {p.discount_percent > 0 ? (
                     <div>
-                      <p style={{ textDecoration: 'line-through', color: '#ccc', margin: 0 }}>Original: ${p.original_price}</p>
-                      <p style={{ fontWeight: 'bold', color: 'var(--accent)', margin: '4px 0 0' }}>Now: ${p.price} ({p.discount_percent}% off)</p>
+                      <p style={{ textDecoration: 'line-through', color: 'var(--danger)', margin: 0 }}>Original: ${p.original_price}</p>
+                      <p style={{ fontWeight: 'bold', color: 'var(--success)', margin: '4px 0 0' }}>Now: ${p.price} <span style={{ color: 'var(--success)' }}>({p.discount_percent}% off)</span></p>
                     </div>
                   ) : (
-                    <p style={{ fontWeight: 'bold', color: 'var(--primary)', margin: 0 }}>Price: ${p.price}</p>
+                    <p style={{ fontWeight: 'bold', color: 'var(--success)', margin: 0 }}>Price: ${p.price}</p>
                   )}
                   <p style={{ margin: '8px 0 0' }}>{p.description?.slice(0, 60)}...</p>
                   <p style={{ margin: '6px 0 0', fontSize: '0.9rem', opacity: 0.9 }}>Stock: {p.stock ?? 0}</p>
+                  <button style={{ marginTop: 10, width: '100%', padding: '10px 0', borderRadius: 8, border: 'none', background: 'var(--primary)', color: 'white', cursor: 'pointer' }} onClick={(e)=>{ e.stopPropagation(); onAddToCart(p) }}>Add to cart</button>
                 </div>
               </div>
             </div>

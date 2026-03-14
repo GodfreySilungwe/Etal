@@ -33,7 +33,7 @@ function Nav({ setView, cartCount }) {
   )
 }
 
-  function Home({ presenter, onSelect }) {
+  function Home({ presenter, onSelect, onAddToCart }) {
   const [email, setEmail] = useState('')
   const [categories, setCategories] = useState([])
   const [products, setProducts] = useState([])
@@ -92,13 +92,14 @@ function Nav({ setView, cartCount }) {
                       <div>
                         {p.discount_percent > 0 ? (
                           <div>
-                            <p style={{ textDecoration: 'line-through', color: '#ccc' }}>Original: ${p.original_price}</p>
-                            <p style={{ fontWeight: 'bold', color: 'var(--accent)' }}>Now: ${p.price} ({p.discount_percent}% off)</p>
+                            <p style={{ textDecoration: 'line-through', color: 'var(--danger)', margin: 0 }}>Original: ${p.original_price}</p>
+                            <p style={{ fontWeight: 'bold', color: 'var(--success)', margin: '4px 0 0' }}>Now: ${p.price} <span style={{ color: 'var(--success)' }}>({p.discount_percent}% off)</span></p>
                           </div>
                         ) : (
-                          <p style={{ fontWeight: 'bold', color: 'var(--primary)' }}>Price: ${p.price}</p>
+                          <p style={{ fontWeight: 'bold', color: 'var(--success)', margin: 0 }}>Price: ${p.price}</p>
                         )}
-                        <p>{p.description?.slice(0, 60)}...</p>
+                        <p style={{ margin: '8px 0 0' }}>{p.description?.slice(0, 60)}...</p>
+                        <button style={{ marginTop: 10, width: '100%', padding: '10px 0', borderRadius: 8, border: 'none', background: 'var(--primary)', color: 'white', cursor: 'pointer' }} onClick={(e)=>{ e.stopPropagation(); onAddToCart(p) }}>Add to cart</button>
                       </div>
                     </div>
                   </div>
@@ -180,8 +181,8 @@ export default function App() {
       <Nav setView={setView} cartCount={cart.length} />
       <ErrorBoundary>
         <main>
-          {view === 'home' && <Home presenter={presenter} onSelect={(id)=>{ setSelectedProductId(id); setView('details') }} />}
-          {view === 'products' && <Products presenter={presenter} onSelect={(id)=>{ setSelectedProductId(id); setView('details') }} />}
+          {view === 'home' && <Home presenter={presenter} onSelect={(id)=>{ setSelectedProductId(id); setView('details') }} onAddToCart={addToCart} />}
+          {view === 'products' && <Products presenter={presenter} onSelect={(id)=>{ setSelectedProductId(id); setView('details') }} onAddToCart={addToCart} />}
           {view === 'services' && <Services presenter={presenter} setView={setView} />}
           {view === 'about' && <AboutUs />}
           {view === 'installation' && <InstallationRequest presenter={presenter} />}
