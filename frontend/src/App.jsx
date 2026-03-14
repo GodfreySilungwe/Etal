@@ -7,9 +7,10 @@ import ProductPresenter from './presenters/ProductPresenter'
 import AdminPresenter from './presenters/AdminPresenter'
 import ErrorBoundary from './ErrorBoundary'
 import Products from './Products'
+import Services from './Services'
 import InstallationRequest from './InstallationRequest'
 import DeliveryRequest from './DeliveryRequest'
-import Services from './Services'
+import AboutUs from './AboutUs'
 
 function Nav({ setView }) {
   return (
@@ -18,6 +19,7 @@ function Nav({ setView }) {
       <button onClick={() => { console.log('Nav: home'); setView('home') }}>Home</button>
       <button onClick={() => { console.log('Nav: products'); setView('products') }}>Products</button>
       <button onClick={() => { console.log('Nav: services'); setView('services') }}>Services & Installations</button>
+      <button onClick={() => { console.log('Nav: about'); setView('about') }}>About Us</button>
       <button onClick={() => { console.log('Nav: contact'); setView('contact') }}>Contact</button>
       <button onClick={() => { console.log('Nav: admin'); setView('admin') }}>Admin</button>
       <button onClick={() => { console.log('Nav: cart'); setView('cart') }}>Cart</button>
@@ -174,7 +176,8 @@ export default function App() {
         <main>
           {view === 'home' && <Home presenter={presenter} onSelect={(id)=>{ setSelectedProductId(id); setView('details') }} />}
           {view === 'products' && <Products presenter={presenter} onSelect={(id)=>{ setSelectedProductId(id); setView('details') }} />}
-          {view === 'services' && <Services presenter={presenter} />}
+          {view === 'services' && <Services presenter={presenter} setView={setView} />}
+          {view === 'about' && <AboutUs />}
           {view === 'contact' && <Contact />}
           {view === 'installation' && <InstallationRequest presenter={presenter} />}
           {view === 'delivery' && <DeliveryRequest presenter={presenter} />}
