@@ -9,7 +9,7 @@ import ErrorBoundary from './ErrorBoundary'
 import Products from './Products'
 import InstallationRequest from './InstallationRequest'
 import DeliveryRequest from './DeliveryRequest'
-import Checkout from './Checkout'
+import Services from './Services'
 
 function Nav({ setView }) {
   return (
@@ -17,6 +17,7 @@ function Nav({ setView }) {
       <img src="/uploads/Log.png" alt="ETAL Logo" style={{ height: '40px', marginRight: '20px' }} />
       <button onClick={() => { console.log('Nav: home'); setView('home') }}>Home</button>
       <button onClick={() => { console.log('Nav: products'); setView('products') }}>Products</button>
+      <button onClick={() => { console.log('Nav: services'); setView('services') }}>Services & Installations</button>
       <button onClick={() => { console.log('Nav: contact'); setView('contact') }}>Contact</button>
       <button onClick={() => { console.log('Nav: admin'); setView('admin') }}>Admin</button>
       <button onClick={() => { console.log('Nav: cart'); setView('cart') }}>Cart</button>
@@ -148,7 +149,7 @@ export default function App() {
   }
 
   function addToCart(product){
-    const next = [...cart, product]
+    const next = [...cart, { ...product, original_price: product.original_price, discount_percent: product.discount_percent }]
     setCart(next)
     localStorage.setItem('etal_cart', JSON.stringify(next))
     alert('Added to cart')
@@ -173,6 +174,7 @@ export default function App() {
         <main>
           {view === 'home' && <Home presenter={presenter} onSelect={(id)=>{ setSelectedProductId(id); setView('details') }} />}
           {view === 'products' && <Products presenter={presenter} onSelect={(id)=>{ setSelectedProductId(id); setView('details') }} />}
+          {view === 'services' && <Services presenter={presenter} />}
           {view === 'contact' && <Contact />}
           {view === 'installation' && <InstallationRequest presenter={presenter} />}
           {view === 'delivery' && <DeliveryRequest presenter={presenter} />}
@@ -181,6 +183,10 @@ export default function App() {
           {view === 'checkout' && <Checkout presenter={presenter} cart={cart} onComplete={() => { setCart([]); localStorage.removeItem('etal_cart'); setView('home') }} />}
           {view === 'admin' && <Admin presenter={adminPresenter} token={token} onLogout={()=>{ setToken(null); localStorage.removeItem('etal_token'); delete axios.defaults.headers.common['Authorization'] }} onAuth={(t)=>{ setToken(t) }} />}
         </main>
+        <footer style={{ textAlign: 'center', padding: '20px', background: 'var(--bg-2)', marginTop: '40px', fontSize: '0.9rem', color: 'var(--muted)' }}>
+          <p>This app is designed by GOSH SOLUTIONS</p>
+          <p>Email: goshsolutions@gmail.com | Phone: +265 995 718 815</p>
+        </footer>
       </ErrorBoundary>
     </div>
   )
