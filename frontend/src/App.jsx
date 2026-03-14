@@ -79,9 +79,8 @@ function Nav({ setView, cartCount }) {
   return (
     <div>
       <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-        <h1 className="rainbow-text">Welcome to ETAL Enterprise</h1>
-        <p>Your Trusted Partner for Quality Electronics</p>
-        <p>Opposite Central Hospital — Phone: +265 995 718 815</p>
+        <h1 className="rainbow-text">Welcome to ETAL Enterprises</h1>
+        <p>Your Trusted Partner for Quality Electronics - Opposite Central Hospital</p>
       </div>
 
       {loading ? (
@@ -106,7 +105,7 @@ function Nav({ setView, cartCount }) {
                           <p style={{ fontWeight: 'bold', color: 'var(--success)', margin: 0 }}>Price: {fmtMK(p.price)}</p>
                         )}
                         <p style={{ margin: '8px 0 0' }}>{p.description?.slice(0, 60)}...</p>
-                        <button style={{ marginTop: 10, width: '100%', padding: '10px 0', borderRadius: 8, border: 'none', background: 'var(--primary)', color: 'white', cursor: 'pointer' }} onClick={(e)=>{ e.stopPropagation(); onAddToCart(p) }}>Add to cart</button>
+                        <button style={{ marginTop: 10, width: '100%', padding: '10px 0', borderRadius: 8, border: 'none', background: 'var(--primary)', color: 'white', cursor: 'pointer' }} onClick={(e)=>{ e.stopPropagation(); onAddToCart(p) }}>Buy</button>
                       </div>
                     </div>
                   </div>

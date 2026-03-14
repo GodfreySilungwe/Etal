@@ -88,7 +88,7 @@ export default function Products({ presenter, onSelect, onAddToCart, onRequestIn
                   )}
                   <p style={{ margin: '8px 0 0' }}>{p.description?.slice(0, 60)}...</p>
                   <p style={{ margin: '6px 0 0', fontSize: '0.9rem', opacity: 0.9 }}>Stock: {p.stock ?? 0}</p>
-                  <button style={{ marginTop: 10, width: '100%', padding: '10px 0', borderRadius: 8, border: 'none', background: 'var(--primary)', color: 'white', cursor: 'pointer' }} onClick={(e)=>{ e.stopPropagation(); onAddToCart(p) }}>Add to cart</button>
+                  <button style={{ marginTop: 10, width: '100%', padding: '10px 0', borderRadius: 8, border: 'none', background: 'var(--primary)', color: 'white', cursor: 'pointer' }} onClick={(e)=>{ e.stopPropagation(); onAddToCart(p) }}>Buy</button>
                 </div>
               </div>
             </div>
