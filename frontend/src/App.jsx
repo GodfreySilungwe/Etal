@@ -78,7 +78,7 @@ export default function App() {
 
   function onSubscribe(email) {
     if (!email || !email.includes('@')) return alert('Invalid email')
-    axios.post('/api/newsletter', { email }).then(() => alert('Subscribed')).catch(() => alert('Failed'))
+    axios.post('http://localhost:4000/api/newsletter', { email }).then(() => alert('Subscribed')).catch(() => alert('Failed'))
   }
 
   function addToCart(product){

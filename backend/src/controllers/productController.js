@@ -1,6 +1,7 @@
 const productModel = require('../models/productModel');
 
 async function list(req, res) {
+  console.log("in the pro controller")
   try {
     const filters = { search: req.query.search, category_id: req.query.category_id };
     const items = await productModel.getAll(filters);

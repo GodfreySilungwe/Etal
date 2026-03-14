@@ -2,7 +2,7 @@ import axios from 'axios'
 
 export default class ProductPresenter {
   async getCategories() {
-    const res = await axios.get('/api/categories')
+    const res = await axios.get('http://localhost:4000/api/categories')
     // normalize response to an array
     if (Array.isArray(res.data)) return res.data
     if (res.data && Array.isArray(res.data.rows)) return res.data.rows

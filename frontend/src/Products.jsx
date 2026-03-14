@@ -21,6 +21,7 @@ export default function Products({ presenter, onSelect }) {
 
   useEffect(() => {
     presenter.getCategories().then(setCategories).catch(() => setCategories([]))
+    
     load()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])

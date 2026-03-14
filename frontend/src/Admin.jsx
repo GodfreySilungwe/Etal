@@ -8,13 +8,15 @@ function Login({ onLogin, presenter }) {
   async function submit(e) {
     e.preventDefault()
     try {
+      console.log("before admin call for  presenter.login")
       const res = await presenter.login(username, password)
+      console.log("after call presenter.login")
       const token = res.token
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
       localStorage.setItem('etal_token', token)
       onLogin(token)
     } catch (err) {
-      alert('Login failed')
+      alert(err)
     }
   }
 

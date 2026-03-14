@@ -1,8 +1,11 @@
 import axios from 'axios'
 
 export default class AdminPresenter {
+
   async login(username, password) {
+    console.log("before presenter actually send login to server")
     const res = await axios.post('http://localhost:4000/api/admin/login', { username, password })
+    console.log("after presenter actually send login to server")
     return res.data
   }
 
