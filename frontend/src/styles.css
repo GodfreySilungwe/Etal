@@ -13,7 +13,8 @@
 *{box-sizing:border-box}
 body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background: linear-gradient(rgba(255,255,255,0.72), rgba(255,255,255,0.72)), url('/uploads/background.png') no-repeat center center fixed; background-size: cover; color:#0f172a }
 
-.nav { position: sticky; top: 0; z-index: 50; display:flex; gap:12px; padding:14px 16px; background: linear-gradient(90deg,var(--primary),var(--primary-600)); color:white; align-items:center; box-shadow: 0 4px 8px rgba(0,0,0,0.12); font-weight: 600; font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont; letter-spacing: 0.03em; text-transform: uppercase; }
+.nav { position: sticky; top: 0; z-index: 50; display:flex; justify-content: space-between; gap:12px; padding:14px 16px; background: linear-gradient(90deg,var(--primary),var(--primary-600)); color:white; align-items:center; box-shadow: 0 4px 8px rgba(0,0,0,0.12); font-weight: 600; font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont; letter-spacing: 0.03em; text-transform: uppercase; }
+.nav .nav-group { display:flex; gap:12px; align-items:center }
 .nav button { background: transparent; color: white; border: 1px solid rgba(255,255,255,0.3); padding: 10px 14px; border-radius: 999px; cursor: pointer; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; transition: transform 0.15s ease, background 0.15s ease; font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont; }
 .nav button:hover { background: rgba(255,255,255,0.14); transform: translateY(-1px); }
 .nav button:active { transform: translateY(0); }

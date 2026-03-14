@@ -12,17 +12,23 @@ import InstallationRequest from './InstallationRequest'
 import DeliveryRequest from './DeliveryRequest'
 import AboutUs from './AboutUs'
 
-function Nav({ setView }) {
+function Nav({ setView, cartCount }) {
   return (
     <nav className="nav">
-      <img src="/uploads/Log.png" alt="ETAL Logo" style={{ height: '40px', marginRight: '20px' }} />
-      <button onClick={() => { console.log('Nav: home'); setView('home') }}>Home</button>
-      <button onClick={() => { console.log('Nav: products'); setView('products') }}>Products</button>
-      <button onClick={() => { console.log('Nav: services'); setView('services') }}>Services & Installations</button>
-      <button onClick={() => { console.log('Nav: about'); setView('about') }}>About Us</button>
-      <button onClick={() => { console.log('Nav: contact'); setView('contact') }}>Contact</button>
-      <button onClick={() => { console.log('Nav: admin'); setView('admin') }}>Admin</button>
-      <button onClick={() => { console.log('Nav: cart'); setView('cart') }}>Cart</button>
+      <div className="nav-group" style={{ alignItems: 'center' }}>
+        <img src="/uploads/Log.png" alt="ETAL Logo" style={{ height: '40px', marginRight: '20px' }} />
+        <button onClick={() => { console.log('Nav: home'); setView('home') }}>Home</button>
+        <button onClick={() => { console.log('Nav: products'); setView('products') }}>Products</button>
+        <button onClick={() => { console.log('Nav: services'); setView('services') }}>Services & Installations</button>
+        <button onClick={() => { console.log('Nav: about'); setView('about') }}>About Us</button>
+        <button onClick={() => { console.log('Nav: admin'); setView('admin') }}>Admin</button>
+      </div>
+
+      <div className="nav-group" style={{ justifyContent: 'flex-end', alignItems: 'center' }}>
+        <button onClick={() => { console.log('Nav: cart'); setView('cart') }}>
+          Cart{cartCount ? ` (${cartCount})` : ''}
+        </button>
+      </div>
     </nav>
   )
 }
@@ -171,14 +177,13 @@ export default function App() {
 
   return (
     <div className="app">
-      <Nav setView={setView} />
+      <Nav setView={setView} cartCount={cart.length} />
       <ErrorBoundary>
         <main>
           {view === 'home' && <Home presenter={presenter} onSelect={(id)=>{ setSelectedProductId(id); setView('details') }} />}
           {view === 'products' && <Products presenter={presenter} onSelect={(id)=>{ setSelectedProductId(id); setView('details') }} />}
           {view === 'services' && <Services presenter={presenter} setView={setView} />}
           {view === 'about' && <AboutUs />}
-          {view === 'contact' && <Contact />}
           {view === 'installation' && <InstallationRequest presenter={presenter} />}
           {view === 'delivery' && <DeliveryRequest presenter={presenter} />}
           {view === 'details' && <ProductDetails presenter={presenter} id={selectedProductId} onBack={()=>setView('products')} onAddToCart={(p)=>{ addToCart(p) }} />}

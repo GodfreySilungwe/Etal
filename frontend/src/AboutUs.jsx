@@ -19,6 +19,16 @@ export default function AboutUs() {
         <h2>SUPPLY OF IT EQUIPMENTS</h2>
         <p>Supplying and installation e.g. Supplier of computers, phones, CCTV equipments, we also install CCTV and biometric security systems. We supply writing and office stationary, including papers, envelopes, notebooks, pens, pencils and other materials used for communication, organization and productivity. We cover a wide range of common office supplies.</p>
       </section>
+
+      <section style={{ marginBottom: '40px' }}>
+        <h2>Contact Us</h2>
+        <p>You can reach our sales and support team at:</p>
+        <ul>
+          <li>Email: <a href="mailto:goshsolutions@gmail.com">goshsolutions@gmail.com</a></li>
+          <li>Phone: +265 995 718 815</li>
+          <li>Location: Malawi (local pickup and service available)</li>
+        </ul>
+      </section>
     </div>
   )
 }
