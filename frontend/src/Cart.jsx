@@ -2,13 +2,11 @@ import React from 'react'
 
 export default function Cart({ items, onRemove, onCheckoutNavigate, presenter }){
   const total = items.reduce((s,i)=>s + (Number(i.price)||0), 0)
-  const totalSavings = items.reduce((s,i)=>{
-    if(i.discount_percent > 0){
-      const savings = (Number(i.original_price) || 0) - (Number(i.price) || 0)
-      return s + savings
-    }
-    return s
+  const totalBefore = items.reduce((s,i)=>{
+    const before = i.discount_percent > 0 ? (Number(i.original_price)||0) : (Number(i.price)||0)
+    return s + before
   }, 0)
+  const totalSavings = totalBefore - total
 
   function goToCheckout(){
     if(items.length===0) return alert('Your cart is empty')
@@ -27,20 +25,27 @@ export default function Cart({ items, onRemove, onCheckoutNavigate, presenter })
               {it.name} - 
               {it.discount_percent > 0 ? (
                 <>
-                  <del style={{ color: '#888' }}>${Number(it.original_price).toFixed(2)}</del> 
-                  <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}> ${Number(it.price).toFixed(2)} ({it.discount_percent}% off)</span>
+                  <del style={{ color: 'var(--danger)' }}>${Number(it.original_price).toFixed(2)}</del> 
+                  <span style={{ fontWeight: 'bold', color: 'var(--success)' }}> ${Number(it.price).toFixed(2)} <span style={{ color: 'var(--success)' }}>({it.discount_percent}% off)</span></span>
                 </>
               ) : (
                 `$${Number(it.price).toFixed(2)}`
               )}
-              {savings > 0 && <span style={{ color: 'green', marginLeft: 8 }}> (Saved: ${savings.toFixed(2)})</span>}
+              {savings > 0 && <span style={{ color: 'var(--success)', marginLeft: 8 }}> (Saved: ${savings.toFixed(2)})</span>}
               <button onClick={()=>onRemove(idx)} style={{ marginLeft: 8 }}>Remove</button>
             </li>
           )
         })}
       </ul>
-      <p>Total: ${total.toFixed(2)}</p>
-      {totalSavings > 0 && <p style={{ color: 'green', fontWeight: 'bold' }}>Total Savings: ${totalSavings.toFixed(2)}</p>}
+      {totalBefore !== total ? (
+        <>
+          <p style={{ color: 'var(--danger)', fontWeight: 'bold' }}>Total before discounts: ${totalBefore.toFixed(2)}</p>
+          <p style={{ color: 'var(--success)', fontWeight: 'bold' }}>Total after discounts: ${total.toFixed(2)}</p>
+          <p style={{ color: 'var(--success)', fontWeight: 'bold' }}>You save: ${totalSavings.toFixed(2)}</p>
+        </>
+      ) : (
+        <p style={{ fontWeight: 'bold', color: 'var(--success)' }}>Total: ${total.toFixed(2)}</p>
+      )}
       <button onClick={goToCheckout} disabled={items.length===0}>Checkout</button>
     </div>
   )

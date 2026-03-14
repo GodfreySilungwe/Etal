@@ -11,6 +11,7 @@ import Services from './Services'
 import InstallationRequest from './InstallationRequest'
 import DeliveryRequest from './DeliveryRequest'
 import AboutUs from './AboutUs'
+import Checkout from './Checkout'
 
 function Nav({ setView, cartCount }) {
   return (
