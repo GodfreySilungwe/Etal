@@ -26,19 +26,19 @@ async function getById(id) {
 }
 
 async function create(product) {
-  const { name, category_id, description, price, original_price, discount_percent, stock, specs, image_url } = product;
+  const { name, category_id, description, price, original_price, discount_percent, stock, installation_price, delivery_price, specs, image_url } = product;
   const res = await pool.query(
-    'INSERT INTO products(name, category_id, description, price, original_price, discount_percent, stock, specs, image_url) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *',
-    [name, category_id || null, description || null, price || null, original_price || null, discount_percent || 0, stock || 0, specs ? JSON.stringify(specs) : null, image_url || null]
+    'INSERT INTO products(name, category_id, description, price, original_price, discount_percent, stock, installation_price, delivery_price, specs, image_url) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *',
+    [name, category_id || null, description || null, price || null, original_price || null, discount_percent || 0, stock || 0, installation_price || null, delivery_price || null, specs ? JSON.stringify(specs) : null, image_url || null]
   );
   return res.rows[0];
 }
 
 async function update(id, product) {
-  const { name, category_id, description, price, original_price, discount_percent, stock, specs, image_url } = product;
+  const { name, category_id, description, price, original_price, discount_percent, stock, installation_price, delivery_price, specs, image_url } = product;
   const res = await pool.query(
-    'UPDATE products SET name=$1, category_id=$2, description=$3, price=$4, original_price=$5, discount_percent=$6, stock=$7, specs=$8, image_url=$9 WHERE id=$10 RETURNING *',
-    [name, category_id || null, description || null, price || null, original_price || null, discount_percent || 0, stock || 0, specs ? JSON.stringify(specs) : null, image_url || null, id]
+    'UPDATE products SET name=$1, category_id=$2, description=$3, price=$4, original_price=$5, discount_percent=$6, stock=$7, installation_price=$8, delivery_price=$9, specs=$10, image_url=$11 WHERE id=$12 RETURNING *',
+    [name, category_id || null, description || null, price || null, original_price || null, discount_percent || 0, stock || 0, installation_price || null, delivery_price || null, specs ? JSON.stringify(specs) : null, image_url || null, id]
   );
   return res.rows[0];
 }

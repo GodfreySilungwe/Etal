@@ -2,9 +2,9 @@ const deliveryModel = require('../models/deliveryModel');
 
 async function create(req, res) {
   try {
-    const { delivery_address, phone, order_details } = req.body;
+    const { delivery_address, phone, order_details, product_id, product_price } = req.body;
     if(!delivery_address || !phone || !order_details) return res.status(400).json({ error: 'Missing fields' });
-    const created = await deliveryModel.create({ delivery_address, phone, order_details });
+    const created = await deliveryModel.create({ delivery_address, phone, order_details, product_id, product_price });
     res.json(created);
   } catch (err) {
     console.error(err);

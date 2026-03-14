@@ -2,9 +2,9 @@ const installationModel = require('../models/installationModel');
 
 async function create(req, res) {
   try {
-    const { customer_location, preferred_date, product } = req.body;
+    const { customer_location, preferred_date, product, product_id, product_price } = req.body;
     if(!customer_location || !preferred_date || !product) return res.status(400).json({ error: 'Missing fields' });
-    const created = await installationModel.create({ customer_location, preferred_date, product });
+    const created = await installationModel.create({ customer_location, preferred_date, product, product_id, product_price });
     res.json(created);
   } catch (err) {
     console.error(err);

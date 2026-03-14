@@ -1,5 +1,11 @@
 import React from 'react'
 
+const fmtMK = (val) => {
+  const n = Number(val)
+  if (val == null || val === '' || Number.isNaN(n)) return ''
+  return `MK ${n.toFixed(2)}`
+}
+
 export default function Cart({ items, onRemove, onCheckoutNavigate, presenter }){
   const total = items.reduce((s,i)=>s + (Number(i.price)||0), 0)
   const totalBefore = items.reduce((s,i)=>{
@@ -25,13 +31,13 @@ export default function Cart({ items, onRemove, onCheckoutNavigate, presenter })
               {it.name} - 
               {it.discount_percent > 0 ? (
                 <>
-                  <del style={{ color: 'var(--danger)' }}>${Number(it.original_price).toFixed(2)}</del> 
-                  <span style={{ fontWeight: 'bold', color: 'var(--success)' }}> ${Number(it.price).toFixed(2)} <span style={{ color: 'var(--success)' }}>({it.discount_percent}% off)</span></span>
+                  <del style={{ color: 'var(--danger)' }}>{fmtMK(it.original_price)}</del> 
+                  <span style={{ fontWeight: 'bold', color: 'var(--success)' }}> {fmtMK(it.price)} <span style={{ color: 'var(--success)' }}>({it.discount_percent}% off)</span></span>
                 </>
               ) : (
-                `$${Number(it.price).toFixed(2)}`
+                `${fmtMK(it.price)}`
               )}
-              {savings > 0 && <span style={{ color: 'var(--success)', marginLeft: 8 }}> (Saved: ${savings.toFixed(2)})</span>}
+              {savings > 0 && <span style={{ color: 'var(--success)', marginLeft: 8 }}> (Saved: {fmtMK(savings)})</span>}
               <button onClick={()=>onRemove(idx)} style={{ marginLeft: 8 }}>Remove</button>
             </li>
           )
@@ -39,12 +45,12 @@ export default function Cart({ items, onRemove, onCheckoutNavigate, presenter })
       </ul>
       {totalBefore !== total ? (
         <>
-          <p style={{ color: 'var(--danger)', fontWeight: 'bold' }}>Total before discounts: ${totalBefore.toFixed(2)}</p>
-          <p style={{ color: 'var(--success)', fontWeight: 'bold' }}>Total after discounts: ${total.toFixed(2)}</p>
-          <p style={{ color: 'var(--success)', fontWeight: 'bold' }}>You save: ${totalSavings.toFixed(2)}</p>
+          <p style={{ color: 'var(--danger)', fontWeight: 'bold' }}>Total before discounts: {fmtMK(totalBefore)}</p>
+          <p style={{ color: 'var(--success)', fontWeight: 'bold' }}>Total after discounts: {fmtMK(total)}</p>
+          <p style={{ color: 'var(--success)', fontWeight: 'bold' }}>You save: {fmtMK(totalSavings)}</p>
         </>
       ) : (
-        <p style={{ fontWeight: 'bold', color: 'var(--success)' }}>Total: ${total.toFixed(2)}</p>
+        <p style={{ fontWeight: 'bold', color: 'var(--success)' }}>Total: {fmtMK(total)}</p>
       )}
       <button onClick={goToCheckout} disabled={items.length===0}>Checkout</button>
     </div>

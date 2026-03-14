@@ -13,6 +13,12 @@ import DeliveryRequest from './DeliveryRequest'
 import AboutUs from './AboutUs'
 import Checkout from './Checkout'
 
+const fmtMK = (val) => {
+  const n = Number(val)
+  if (val == null || val === '' || Number.isNaN(n)) return ''
+  return `MK ${n.toFixed(2)}`
+}
+
 function Nav({ setView, cartCount }) {
   return (
     <nav className="nav">
@@ -34,7 +40,7 @@ function Nav({ setView, cartCount }) {
   )
 }
 
-  function Home({ presenter, onSelect, onAddToCart }) {
+  function Home({ presenter, onSelect, onAddToCart, onRequestInstallation, onRequestDelivery }) {
   const [email, setEmail] = useState('')
   const [categories, setCategories] = useState([])
   const [products, setProducts] = useState([])
@@ -93,14 +99,24 @@ function Nav({ setView, cartCount }) {
                       <div>
                         {p.discount_percent > 0 ? (
                           <div>
-                            <p style={{ textDecoration: 'line-through', color: 'var(--danger)', margin: 0 }}>Original: ${p.original_price}</p>
-                            <p style={{ fontWeight: 'bold', color: 'var(--success)', margin: '4px 0 0' }}>Now: ${p.price} <span style={{ color: 'var(--success)' }}>({p.discount_percent}% off)</span></p>
+                            <p style={{ textDecoration: 'line-through', color: 'var(--danger)', margin: 0 }}>Original: {fmtMK(p.original_price)}</p>
+                            <p style={{ fontWeight: 'bold', color: 'var(--success)', margin: '4px 0 0' }}>Now: {fmtMK(p.price)} <span style={{ color: 'var(--success)' }}>({p.discount_percent}% off)</span></p>
                           </div>
                         ) : (
-                          <p style={{ fontWeight: 'bold', color: 'var(--success)', margin: 0 }}>Price: ${p.price}</p>
+                          <p style={{ fontWeight: 'bold', color: 'var(--success)', margin: 0 }}>Price: {fmtMK(p.price)}</p>
                         )}
                         <p style={{ margin: '8px 0 0' }}>{p.description?.slice(0, 60)}...</p>
                         <button style={{ marginTop: 10, width: '100%', padding: '10px 0', borderRadius: 8, border: 'none', background: 'var(--primary)', color: 'white', cursor: 'pointer' }} onClick={(e)=>{ e.stopPropagation(); onAddToCart(p) }}>Add to cart</button>
+                        {p.installation_price && onRequestInstallation && (
+                          <button style={{ marginTop: 8, width: '100%', padding: '10px 0', borderRadius: 8, border: 'none', background: '#a00', color: 'white', cursor: 'pointer' }} onClick={(e)=>{ e.stopPropagation(); onRequestInstallation(p, p.installation_price) }}>
+                            Request Installation ({fmtMK(p.installation_price)})
+                          </button>
+                        )}
+                        {p.delivery_price && onRequestDelivery && (
+                          <button style={{ marginTop: 8, width: '100%', padding: '10px 0', borderRadius: 8, border: 'none', background: '#a00', color: 'white', cursor: 'pointer' }} onClick={(e)=>{ e.stopPropagation(); onRequestDelivery(p, p.delivery_price) }}>
+                            Request Delivery ({fmtMK(p.delivery_price)})
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -137,8 +153,19 @@ export default function App() {
   const [token, setToken] = useState(localStorage.getItem('etal_token') || null)
   const [selectedProductId, setSelectedProductId] = useState(null)
   const [cart, setCart] = useState(JSON.parse(localStorage.getItem('etal_cart')||'[]'))
+  const [requestContext, setRequestContext] = useState(null)
   const [presenter] = useState(() => new ProductPresenter())
   const [adminPresenter] = useState(() => new AdminPresenter())
+
+  function requestInstallation(product, price) {
+    setRequestContext({ product, price })
+    setView('installation')
+  }
+
+  function requestDelivery(product, price) {
+    setRequestContext({ product, price })
+    setView('delivery')
+  }
 
   useEffect(()=>{
     console.log('App mounted. initial view=', view)
@@ -146,6 +173,23 @@ export default function App() {
   },[])
 
   useEffect(()=>{ console.log('App view changed ->', view) }, [view])
+
+  useEffect(() => {
+    const onRequestInstallation = (e) => {
+      setRequestContext({ product: e.detail.product, price: e.detail.productPrice })
+      setView('installation')
+    }
+    const onRequestDelivery = (e) => {
+      setRequestContext({ product: e.detail.product, price: e.detail.productPrice })
+      setView('delivery')
+    }
+    window.addEventListener('request-installation', onRequestInstallation)
+    window.addEventListener('request-delivery', onRequestDelivery)
+    return () => {
+      window.removeEventListener('request-installation', onRequestInstallation)
+      window.removeEventListener('request-delivery', onRequestDelivery)
+    }
+  }, [])
 
   // ensure axios header uses stored token
   useEffect(()=>{
@@ -182,13 +226,13 @@ export default function App() {
       <Nav setView={setView} cartCount={cart.length} />
       <ErrorBoundary>
         <main>
-          {view === 'home' && <Home presenter={presenter} onSelect={(id)=>{ setSelectedProductId(id); setView('details') }} onAddToCart={addToCart} />}
-          {view === 'products' && <Products presenter={presenter} onSelect={(id)=>{ setSelectedProductId(id); setView('details') }} onAddToCart={addToCart} />}
+          {view === 'home' && <Home presenter={presenter} onSelect={(id)=>{ setSelectedProductId(id); setView('details') }} onAddToCart={addToCart} onRequestInstallation={requestInstallation} onRequestDelivery={requestDelivery} />}
+          {view === 'products' && <Products presenter={presenter} onSelect={(id)=>{ setSelectedProductId(id); setView('details') }} onAddToCart={addToCart} onRequestInstallation={requestInstallation} onRequestDelivery={requestDelivery} />}
           {view === 'services' && <Services presenter={presenter} setView={setView} />}
           {view === 'about' && <AboutUs />}
-          {view === 'installation' && <InstallationRequest presenter={presenter} />}
-          {view === 'delivery' && <DeliveryRequest presenter={presenter} />}
-          {view === 'details' && <ProductDetails presenter={presenter} id={selectedProductId} onBack={()=>setView('products')} onAddToCart={(p)=>{ addToCart(p) }} />}
+          {view === 'installation' && <InstallationRequest presenter={presenter} requestContext={requestContext} />}
+          {view === 'delivery' && <DeliveryRequest presenter={presenter} requestContext={requestContext} />}
+          {view === 'details' && <ProductDetails presenter={presenter} id={selectedProductId} onBack={()=>setView('products')} onAddToCart={(p)=>{ addToCart(p) }} onRequestInstallation={requestInstallation} onRequestDelivery={requestDelivery} />}
           {view === 'cart' && <Cart presenter={presenter} items={cart} onRemove={removeFromCart} onCheckoutNavigate={()=>setView('checkout')} />}
           {view === 'checkout' && <Checkout presenter={presenter} cart={cart} onComplete={() => { setCart([]); localStorage.removeItem('etal_cart'); setView('home') }} />}
           {view === 'admin' && <Admin presenter={adminPresenter} token={token} onLogout={()=>{ setToken(null); localStorage.removeItem('etal_token'); delete axios.defaults.headers.common['Authorization'] }} onAuth={(t)=>{ setToken(t) }} />}

@@ -16,6 +16,9 @@ async function initDb() {
     price NUMERIC,
     original_price NUMERIC,
     discount_percent INTEGER DEFAULT 0,
+    stock INTEGER DEFAULT 0,
+    installation_price NUMERIC,
+    delivery_price NUMERIC,
     specs JSONB,
     image_url TEXT
   );
@@ -45,6 +48,8 @@ async function initDb() {
     customer_location TEXT NOT NULL,
     preferred_date DATE NOT NULL,
     product TEXT NOT NULL,
+    product_id INTEGER,
+    product_price NUMERIC,
     requested_at TIMESTAMP DEFAULT now()
   );
 
@@ -53,6 +58,8 @@ async function initDb() {
     delivery_address TEXT NOT NULL,
     phone TEXT NOT NULL,
     order_details TEXT NOT NULL,
+    product_id INTEGER,
+    product_price NUMERIC,
     requested_at TIMESTAMP DEFAULT now()
   );
 
@@ -78,6 +85,8 @@ async function initDb() {
   await pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS original_price NUMERIC`);
   await pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS discount_percent INTEGER DEFAULT 0`);
   await pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS stock INTEGER DEFAULT 0`);
+  await pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS installation_price NUMERIC`);
+  await pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS delivery_price NUMERIC`);
 
   // Seed a default category and sample product if none exist
   const catRes = await pool.query('SELECT COUNT(*) FROM categories');
@@ -90,7 +99,7 @@ async function initDb() {
     const c = await pool.query('SELECT id FROM categories WHERE name=$1 LIMIT 1', ['Fridges']);
     const catId = c.rows[0] ? c.rows[0].id : null;
     await pool.query(
-      `INSERT INTO products(name, category_id, description, price, original_price, discount_percent, stock, specs, image_url) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+      `INSERT INTO products(name, category_id, description, price, original_price, discount_percent, stock, installation_price, delivery_price, specs, image_url) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
       [
         'Sample Fridge Model X',
         catId,
@@ -99,6 +108,8 @@ async function initDb() {
         499.99,
         0,
         10,
+        120.00,
+        80.00,
         JSON.stringify({ capacity: '300L', energy_rating: 'A+' }),
         ''
       ]

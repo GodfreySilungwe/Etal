@@ -1,5 +1,11 @@
 import React, { useState } from 'react'
 
+const fmtMK = (val) => {
+  const n = Number(val)
+  if (val == null || val === '' || Number.isNaN(n)) return ''
+  return `MK ${n.toFixed(2)}`
+}
+
 export default function Checkout({ presenter, cart = [], onComplete }){
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
@@ -28,9 +34,9 @@ export default function Checkout({ presenter, cart = [], onComplete }){
       <div style={{maxWidth:640}}>
         <h3>Order Summary</h3>
         <ul>
-          {(cart||[]).map((it, i)=> <li key={i}>{it.name} - {it.price}</li>)}
+          {(cart||[]).map((it, i)=> <li key={i}>{it.name} - {fmtMK(it.price)}</li>)}
         </ul>
-        <p><strong>Total: {total}</strong></p>
+        <p><strong>Total: {fmtMK(total)}</strong></p>
 
         <h3>Customer Details</h3>
         <form onSubmit={submit}>

@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 
+const fmtMK = (val) => val == null || val === '' ? '' : `MK ${Number(val).toFixed(2)}`
+
 function Login({ onLogin, presenter }) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -34,7 +36,7 @@ function ProductsAdmin({ presenter, token }) {
   const [products, setProducts] = useState([])
   const [editing, setEditing] = useState(null)
   const [categories, setCategories] = useState([])
-  const [form, setForm] = useState({ name:'', category_id:'', description:'', price:'', original_price:'', discount_percent:'', specs:'', image_url:'' })
+  const [form, setForm] = useState({ name:'', category_id:'', description:'', price:'', original_price:'', discount_percent:'', stock:'', installation_price:'', delivery_price:'', specs:'', image_url:'' })
   const [errors, setErrors] = useState([])
 
   async function uploadImage(file) {
@@ -69,6 +71,8 @@ function ProductsAdmin({ presenter, token }) {
       original_price:p.original_price||'',
       discount_percent:p.discount_percent||'',
       stock:p.stock||'',
+      installation_price:p.installation_price||'',
+      delivery_price:p.delivery_price||'',
       specs: p.specs ? JSON.stringify(p.specs) : '',
       image_url:p.image_url||''
     })
@@ -83,7 +87,7 @@ function ProductsAdmin({ presenter, token }) {
     if(errs.length){ setErrors(errs); return }
     setErrors([])
     try{
-      const payload = { name: form.name, category_id: form.category_id || null, description: form.description, price: form.price || null, original_price: form.original_price || null, discount_percent: form.discount_percent || 0, specs: form.specs ? JSON.parse(form.specs) : null, image_url: form.image_url }
+      const payload = { name: form.name, category_id: form.category_id || null, description: form.description, price: form.price || null, original_price: form.original_price || null, discount_percent: form.discount_percent || 0, stock: form.stock || 0, installation_price: form.installation_price || null, delivery_price: form.delivery_price || null, specs: form.specs ? JSON.parse(form.specs) : null, image_url: form.image_url }
       if(editing){
         await presenter.updateProduct(editing, payload)
       } else {
@@ -107,7 +111,9 @@ function ProductsAdmin({ presenter, token }) {
               <div style={{ background: p.image_url ? 'rgba(0,0,0,0.6)' : 'transparent', padding: '14px', borderRadius: '12px' }}>
                 <h4>{p.name}</h4>
                 <p style={{ margin: 0, opacity: 0.9 }}>{p.category}</p>
-                <p style={{ margin: '4px 0' }}>Price: {p.price}</p>
+                <p style={{ margin: '4px 0' }}>Price: {fmtMK(p.price)}</p>
+                <p style={{ margin: '4px 0' }}>Installation price: {fmtMK(p.installation_price) || '—'}</p>
+                <p style={{ margin: '4px 0' }}>Delivery price: {fmtMK(p.delivery_price) || '—'}</p>
                 <p style={{ margin: '4px 0' }}>Stock: {p.stock ?? 0}</p>
                 <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
                   <button onClick={()=>startEdit(p)}>Edit</button>
@@ -131,6 +137,8 @@ function ProductsAdmin({ presenter, token }) {
             <input placeholder="Original Price" value={form.original_price} onChange={e=>setForm({...form, original_price:e.target.value})} />
             <input placeholder="Discount Percent" value={form.discount_percent} onChange={e=>setForm({...form, discount_percent:e.target.value})} />
             <input placeholder="Stock" value={form.stock} onChange={e=>setForm({...form, stock:e.target.value})} />
+            <input placeholder="Installation Price" value={form.installation_price} onChange={e=>setForm({...form, installation_price:e.target.value})} />
+            <input placeholder="Delivery Price" value={form.delivery_price} onChange={e=>setForm({...form, delivery_price:e.target.value})} />
             <textarea placeholder='Specs JSON' value={form.specs} onChange={e=>setForm({...form, specs:e.target.value})} />
             <div>
               <input type="file" accept="image/*" onChange={async(e)=>{ const url = await uploadImage(e.target.files[0]); if(url) setForm({...form, image_url:url}) }} />

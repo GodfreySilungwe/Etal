@@ -1,6 +1,12 @@
 import React, { useEffect, useState } from 'react'
 
-export default function Products({ presenter, onSelect, onAddToCart }) {
+const fmtMK = (val) => {
+  const n = Number(val)
+  if (val == null || val === '' || Number.isNaN(n)) return ''
+  return `MK ${n.toFixed(2)}`
+}
+
+export default function Products({ presenter, onSelect, onAddToCart, onRequestInstallation, onRequestDelivery }) {
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('')
   const [items, setItems] = useState(["fridge","phones"])
@@ -74,15 +80,25 @@ export default function Products({ presenter, onSelect, onAddToCart }) {
                 <div>
                   {p.discount_percent > 0 ? (
                     <div>
-                      <p style={{ textDecoration: 'line-through', color: 'var(--danger)', margin: 0 }}>Original: ${p.original_price}</p>
-                      <p style={{ fontWeight: 'bold', color: 'var(--success)', margin: '4px 0 0' }}>Now: ${p.price} <span style={{ color: 'var(--success)' }}>({p.discount_percent}% off)</span></p>
+                      <p style={{ textDecoration: 'line-through', color: 'var(--danger)', margin: 0 }}>Original: {fmtMK(p.original_price)}</p>
+                      <p style={{ fontWeight: 'bold', color: 'var(--success)', margin: '4px 0 0' }}>Now: {fmtMK(p.price)} <span style={{ color: 'var(--success)' }}>({p.discount_percent}% off)</span></p>
                     </div>
                   ) : (
-                    <p style={{ fontWeight: 'bold', color: 'var(--success)', margin: 0 }}>Price: ${p.price}</p>
+                    <p style={{ fontWeight: 'bold', color: 'var(--success)', margin: 0 }}>Price: {fmtMK(p.price)}</p>
                   )}
                   <p style={{ margin: '8px 0 0' }}>{p.description?.slice(0, 60)}...</p>
                   <p style={{ margin: '6px 0 0', fontSize: '0.9rem', opacity: 0.9 }}>Stock: {p.stock ?? 0}</p>
                   <button style={{ marginTop: 10, width: '100%', padding: '10px 0', borderRadius: 8, border: 'none', background: 'var(--primary)', color: 'white', cursor: 'pointer' }} onClick={(e)=>{ e.stopPropagation(); onAddToCart(p) }}>Add to cart</button>
+                  {p.installation_price && onRequestInstallation && (
+                    <button style={{ marginTop: 8, width: '100%', padding: '10px 0', borderRadius: 8, border: 'none', background: '#a00', color: 'white', cursor: 'pointer' }} onClick={(e)=>{ e.stopPropagation(); onRequestInstallation(p, p.installation_price) }}>
+                      Request Installation ({fmtMK(p.installation_price)})
+                    </button>
+                  )}
+                  {p.delivery_price && onRequestDelivery && (
+                    <button style={{ marginTop: 8, width: '100%', padding: '10px 0', borderRadius: 8, border: 'none', background: '#a00', color: 'white', cursor: 'pointer' }} onClick={(e)=>{ e.stopPropagation(); onRequestDelivery(p, p.delivery_price) }}>
+                      Request Delivery ({fmtMK(p.delivery_price)})
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
