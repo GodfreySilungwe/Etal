@@ -13,6 +13,7 @@ import DeliveryRequest from './DeliveryRequest'
 import AboutUs from './AboutUs'
 import Checkout from './Checkout'
 import ProductCard from './ProductCard'
+import QuoteRequest from './QuoteRequest'
 
 const fmtMK = (val) => {
   const n = Number(val)
@@ -33,7 +34,7 @@ function Nav({ setView, cartCount }) {
       </div>
 
       <div className="nav-group" style={{ justifyContent: 'flex-end', alignItems: 'center' }}>
-        <button onClick={() => { console.log('Nav: cart'); setView('cart') }}>
+        <button id="cart-nav-button" onClick={() => { console.log('Nav: cart'); setView('cart') }}>
           Cart{cartCount ? ` (${cartCount})` : ''}
         </button>
       </div>
@@ -206,6 +207,42 @@ export default function App() {
     alert('Added to cart')
   }
 
+  function animateAddToCart({ sourceEl, imageUrl } = {}) {
+    const cartButton = document.getElementById('cart-nav-button')
+    if (!sourceEl || !cartButton) return
+
+    const sourceRect = sourceEl.getBoundingClientRect()
+    const cartRect = cartButton.getBoundingClientRect()
+    const fly = document.createElement('div')
+    fly.className = 'cart-fly'
+    if (imageUrl) fly.style.backgroundImage = `url(${imageUrl})`
+
+    const startX = sourceRect.left + (sourceRect.width / 2) - 24
+    const startY = sourceRect.top + (sourceRect.height / 2) - 24
+    const endX = cartRect.left + (cartRect.width / 2) - 24
+    const endY = cartRect.top + (cartRect.height / 2) - 24
+
+    fly.style.left = `${startX}px`
+    fly.style.top = `${startY}px`
+    document.body.appendChild(fly)
+
+    requestAnimationFrame(() => {
+      fly.style.transform = `translate(${endX - startX}px, ${endY - startY}px) scale(0.35)`
+      fly.style.opacity = '0.2'
+    })
+
+    fly.addEventListener('transitionend', () => {
+      fly.remove()
+      cartButton.classList.add('cart-bump')
+      setTimeout(() => cartButton.classList.remove('cart-bump'), 250)
+    }, { once: true })
+  }
+
+  function handleBuy(product, animationMeta) {
+    addToCart(product)
+    animateAddToCart(animationMeta)
+  }
+
   function removeFromCart(idx){
     const item = cart[idx]
     let next
@@ -243,15 +280,16 @@ export default function App() {
       <Nav setView={setView} cartCount={cart.reduce((total, item) => total + (item.quantity || 1), 0)} />
       <ErrorBoundary>
         <main>
-          {view === 'home' && <Home presenter={presenter} onSelect={(id)=>{ setSelectedProductId(id); setView('details') }} onAddToCart={addToCart} onRequestInstallation={requestInstallation} onRequestDelivery={requestDelivery} />}
-          {view === 'products' && <Products presenter={presenter} onSelect={(id)=>{ setSelectedProductId(id); setView('details') }} onAddToCart={addToCart} onRequestInstallation={requestInstallation} onRequestDelivery={requestDelivery} />}
-          {view === 'services' && <Services presenter={presenter} setView={setView} />}
+          {view === 'home' && <Home presenter={presenter} onSelect={(id)=>{ setSelectedProductId(id); setView('details') }} onAddToCart={handleBuy} onRequestInstallation={requestInstallation} onRequestDelivery={requestDelivery} />}
+          {view === 'products' && <Products presenter={presenter} onSelect={(id)=>{ setSelectedProductId(id); setView('details') }} onAddToCart={handleBuy} onRequestInstallation={requestInstallation} onRequestDelivery={requestDelivery} />}
+          {view === 'services' && <Services presenter={presenter} setView={setView} onRequestInstallation={requestInstallation} />}
           {view === 'about' && <AboutUs />}
           {view === 'installation' && <InstallationRequest presenter={presenter} requestContext={requestContext} />}
           {view === 'delivery' && <DeliveryRequest presenter={presenter} requestContext={requestContext} />}
-          {view === 'details' && <ProductDetails presenter={presenter} id={selectedProductId} onBack={()=>setView('products')} onAddToCart={(p)=>{ addToCart(p) }} onRequestInstallation={requestInstallation} onRequestDelivery={requestDelivery} />}
-          {view === 'cart' && <Cart presenter={presenter} items={cart} onRemove={removeFromCart} onUpdateItem={updateCartItem} onCheckoutNavigate={()=>setView('checkout')} onRequestInstallation={requestInstallation} onRequestDelivery={requestDelivery} />}
-          {view === 'checkout' && <Checkout presenter={presenter} cart={cart} onComplete={() => { setCart([]); localStorage.removeItem('etal_cart'); setView('home') }} />}
+          {view === 'details' && <ProductDetails presenter={presenter} id={selectedProductId} onBack={()=>setView('products')} onBuy={handleBuy} />}
+          {view === 'cart' && <Cart presenter={presenter} items={cart} onRemove={removeFromCart} onUpdateItem={updateCartItem} onCheckoutNavigate={()=>setView('checkout')} onQuoteNavigate={()=>setView('quote')} onRequestInstallation={requestInstallation} onRequestDelivery={requestDelivery} />}
+          {view === 'checkout' && <Checkout presenter={presenter} cart={cart} onRequestQuote={() => setView('quote')} onComplete={() => { setCart([]); localStorage.removeItem('etal_cart'); setView('home') }} />}
+          {view === 'quote' && <QuoteRequest presenter={presenter} cart={cart} onComplete={() => setView('home')} />}
           {view === 'admin' && <Admin presenter={adminPresenter} token={token} onLogout={()=>{ setToken(null); localStorage.removeItem('etal_token'); delete axios.defaults.headers.common['Authorization'] }} onAuth={(t)=>{ setToken(t) }} />}
         </main>
         <footer style={{ textAlign: 'center', padding: '20px', background: 'var(--bg-2)', marginTop: '40px', fontSize: '0.9rem', color: 'var(--muted)' }}>

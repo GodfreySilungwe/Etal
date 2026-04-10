@@ -47,6 +47,9 @@ app.use('/api/delivery-requests', require('./routes/deliveryRoutes'));
 app.use('/api/testimonials', require('./routes/testimonialRoutes'));
 app.use('/api/newsletter', require('./routes/newsletterRoutes'));
 app.use('/api/reports', require('./routes/reportRoutes'));
+app.use('/api/payment-references', require('./routes/paymentReferenceRoutes'));
+app.use('/api/quote-requests', require('./routes/quoteRequestRoutes'));
+app.use('/api/services', require('./routes/serviceRoutes'));
 
 // Upload image (protected)
 app.post('/api/upload', authenticateToken, upload.single('image'), (req, res) => {

@@ -33,6 +33,21 @@ export default class ProductPresenter {
     return res.data
   }
 
+  async createPaymentReference(payload) {
+    const res = await axios.post('http://localhost:4000/api/payment-references', payload)
+    return res.data
+  }
+
+  async createQuoteRequest(payload) {
+    const res = await axios.post('http://localhost:4000/api/quote-requests', payload)
+    return res.data
+  }
+
+  async getServices() {
+    const res = await axios.get('http://localhost:4000/api/services')
+    return Array.isArray(res.data) ? res.data : []
+  }
+
   async createInstallation(payload) {
     const res = await axios.post('http://localhost:4000/api/installation-requests', payload)
     return res.data

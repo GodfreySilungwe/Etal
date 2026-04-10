@@ -36,12 +36,12 @@ export default function InstallationRequest({ presenter, requestContext }){
 
   return (
     <div>
-      <h2>Request Installation</h2>
+      <h2>Request Installation / Service</h2>
       <form onSubmit={submit} style={{maxWidth:480}}>
         <input placeholder="Customer location" value={location} onChange={(e)=>setLocation(e.target.value)} />
         <input type="date" value={date} onChange={(e)=>setDate(e.target.value)} />
-        <input placeholder="Product purchased (name or id)" value={product} onChange={(e)=>setProduct(e.target.value)} />
-        {productPrice && <p style={{ margin: '8px 0' }}>Installation fee: <strong>MK {Number(productPrice).toFixed(2)}</strong></p>}
+        <input placeholder="Service or product name" value={product} onChange={(e)=>setProduct(e.target.value)} />
+        {productPrice && <p style={{ margin: '8px 0' }}>Service fee: <strong>MK {Number(productPrice).toFixed(2)}</strong></p>}
         <button type="submit" disabled={loading}>{loading ? 'Submitting...' : 'Submit'}</button>
       </form>
     </div>

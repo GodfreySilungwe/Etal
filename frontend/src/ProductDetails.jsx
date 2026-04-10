@@ -6,7 +6,7 @@ const fmtMK = (val) => {
   return `MK ${n.toFixed(2)}`
 }
 
-export default function ProductDetails({ id, onBack, onAddToCart, onRequestInstallation, onRequestDelivery, presenter }){
+export default function ProductDetails({ id, onBack, onBuy, presenter }){
   const [p, setP] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -62,17 +62,12 @@ export default function ProductDetails({ id, onBack, onAddToCart, onRequestInsta
       )}
       {p.image_url && <img src={p.image_url} alt={p.name} style={{maxWidth:320}} />}
       <div style={{ marginTop: 12, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        <button onClick={()=>onAddToCart(p)}>Add to cart</button>
-        {p.installation_price && onRequestInstallation && (
-          <button onClick={()=>onRequestInstallation(p, p.installation_price)}>
-            Request Installation ({fmtMK(p.installation_price)})
-          </button>
-        )}
-        {p.delivery_price && onRequestDelivery && (
-          <button onClick={()=>onRequestDelivery(p, p.delivery_price)}>
-            Request Delivery ({fmtMK(p.delivery_price)})
-          </button>
-        )}
+        <button
+          className="buy-like-btn"
+          onClick={(e) => onBuy && onBuy(p, { sourceEl: e.currentTarget, imageUrl: p.image_url })}
+        >
+          Buy
+        </button>
       </div>
     </div>
   )

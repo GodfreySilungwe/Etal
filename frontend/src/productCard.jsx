@@ -6,9 +6,27 @@ const fmtMK = (val) => {
   return `MWK ${n.toLocaleString()}`
 }
 
-export default function ProductCard({ product, onSelect, onAddToCart }) {
+export default function ProductCard({
+  product,
+  onSelect,
+  onAddToCart,
+  onAction,
+  actionLabel = 'Buy',
+  showAction = true,
+  extraContent = null
+}) {
+  const handleSelect = () => {
+    if (onSelect) onSelect(product.id)
+  }
+
+  const handleAction = (e) => {
+    e.stopPropagation()
+    if (onAction) return onAction(product)
+    if (onAddToCart) onAddToCart(product, { sourceEl: e.currentTarget.closest('.product-card'), imageUrl: product.image_url })
+  }
+
   return (
-    <div className="product-card" onClick={() => onSelect(product.id)}>
+    <div className="product-card" onClick={handleSelect}>
       <div className="card-top">
         <h3>{product.name}</h3>
         <p>{product.description?.slice(0, 30)}...</p>
@@ -33,15 +51,15 @@ export default function ProductCard({ product, onSelect, onAddToCart }) {
         ) : (
           <p className="new-price">{fmtMK(product.price)}</p>
         )}
+        <p className="stock-line">Stock: {product.stock ?? 0}</p>
 
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            onAddToCart(product)
-          }}
-        >
-          Buy
-        </button>
+        {extraContent}
+
+        {showAction && (
+          <button onClick={handleAction}>
+            {actionLabel}
+          </button>
+        )}
       </div>
     </div>
   )

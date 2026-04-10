@@ -1,41 +1,63 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 
-export default function Services({ presenter, setView }) {
+const fmtMK = (val) => {
+  const n = Number(val)
+  if (val == null || val === '' || Number.isNaN(n)) return ''
+  return `MK ${n.toFixed(2)}`
+}
+
+export default function Services({ presenter, setView, onRequestInstallation }) {
+  const [services, setServices] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function load() {
+      setLoading(true)
+      try {
+        const rows = await presenter.getServices()
+        setServices(Array.isArray(rows) ? rows : [])
+      } catch (err) {
+        console.error(err)
+        setServices([])
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
+  }, [presenter])
+
+  function requestService(service) {
+    if (onRequestInstallation) {
+      onRequestInstallation({ id: `service-${service.id}`, name: service.name }, service.price)
+      return
+    }
+    setView('installation')
+  }
+
   return (
     <div>
       <h1>Services & Installations</h1>
-      <p>We offer a range of services including aircon installations, maintenance, and delivery.</p>
+      <p>Services are managed by admin and listed here with current pricing.</p>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '40px' }}>
-        <div style={{ textAlign: 'center' }}>
-          <img src="/uploads/aircon3peace.png" alt="Aircon Installation" style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: '8px' }} />
-          <h3>Aircon Installation</h3>
-          <p>Professional installation of air conditioning units.</p>
-          <button onClick={() => setView('installation')}>Request Installation</button>
+      {loading ? (
+        <p>Loading services...</p>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '40px' }}>
+          {services.map((s) => (
+            <div key={s.id} style={{ textAlign: 'center', background: 'rgba(255,255,255,0.9)', color: '#111827', borderRadius: 12, padding: 16 }}>
+              <h3>{s.name}</h3>
+              <p>{s.description || 'No description provided.'}</p>
+              <p><strong>{fmtMK(s.price)}</strong></p>
+              <button className="buy-like-btn" onClick={() => requestService(s)}>Request Service</button>
+            </div>
+          ))}
+          {services.length === 0 && <p>No services have been added yet.</p>}
         </div>
-        <div style={{ textAlign: 'center' }}>
-          <img src="/uploads/indoorunit.png" alt="Indoor Unit Service" style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: '8px' }} />
-          <h3>Indoor Unit Service</h3>
-          <p>Maintenance and repair of indoor aircon units.</p>
-          <button onClick={() => setView('installation')}>Request Service</button>
-        </div>
-        <div style={{ textAlign: 'center' }}>
-          <img src="/uploads/outdoorunit.png" alt="Outdoor Unit Service" style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: '8px' }} />
-          <h3>Outdoor Unit Service</h3>
-          <p>Maintenance and repair of outdoor aircon units.</p>
-          <button onClick={() => setView('installation')}>Request Service</button>
-        </div>
-        <div style={{ textAlign: 'center' }}>
-          <img src="/uploads/UprightAirCon.png" alt="Upright Aircon" style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: '8px' }} />
-          <h3>Upright Aircon</h3>
-          <p>Specialized service for upright air conditioners.</p>
-          <button onClick={() => setView('installation')}>Request Service</button>
-        </div>
-      </div>
+      )}
 
       <div style={{ marginTop: '40px' }}>
         <h2>Request a Service</h2>
-        <p>Fill out the form below to request installation or delivery services.</p>
+        <p>Use service cards above or request delivery below.</p>
         <div style={{ display: 'flex', gap: '20px' }}>
           <button onClick={() => setView('installation')}>Installation Request</button>
           <button onClick={() => setView('delivery')}>Delivery Request</button>
