@@ -82,7 +82,7 @@ function Nav({ setView, cartCount }) {
     <div>
       <div style={{ textAlign: 'center', marginBottom: '40px' }}>
         <h1 className="rainbow-text">Welcome to ETAL Enterprises</h1>
-        <p>Your Trusted Partner for Quality Electronics - Opposite Central Hospital</p>
+        <p className="home-tagline">Your Trusted Partner for Quality Electronics - Opposite Central Hospital</p>
       </div>
 
       {loading ? (

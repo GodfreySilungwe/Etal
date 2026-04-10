@@ -3,7 +3,7 @@ import React from "react"
 const fmtMK = (val) => {
   const n = Number(val)
   if (val == null || val === '' || Number.isNaN(n)) return ''
-  return `MWK ${n.toLocaleString()}`
+  return `MWK ${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
 export default function ProductCard({
@@ -15,6 +15,9 @@ export default function ProductCard({
   showAction = true,
   extraContent = null
 }) {
+  const stock = Number(product.stock ?? 0)
+  const stockClass = stock <= 0 ? 'stock-line stock-out' : stock <= 5 ? 'stock-line stock-low' : 'stock-line stock-in'
+
   const handleSelect = () => {
     if (onSelect) onSelect(product.id)
   }
@@ -51,7 +54,9 @@ export default function ProductCard({
         ) : (
           <p className="new-price">{fmtMK(product.price)}</p>
         )}
-        <p className="stock-line">Stock: {product.stock ?? 0}</p>
+        <p className={stockClass}>
+          {stock <= 0 ? 'Out of stock' : `Stock: ${stock}`}
+        </p>
 
         {extraContent}
 

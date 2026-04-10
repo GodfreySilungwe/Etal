@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 const fmtMK = (val) => {
   const n = Number(val)
   if (val == null || val === '' || Number.isNaN(n)) return ''
-  return `MK ${n.toFixed(2)}`
+  return `MK ${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
 export default function ProductDetails({ id, onBack, onBuy, presenter }){
@@ -47,27 +47,35 @@ export default function ProductDetails({ id, onBack, onBuy, presenter }){
   )
 
   return (
-    <div>
+    <div className="product-details">
       <button onClick={onBack}>Back</button>
-      <h2>{p.name}</h2>
-      <p>Category: {p.category}</p>
-      <p>{p.description}</p>
-      {p.discount_percent > 0 ? (
-        <div>
-          <p style={{ textDecoration: 'line-through', color: 'var(--danger)', margin: 0 }}>Original: {fmtMK(p.original_price)}</p>
-          <p style={{ fontWeight: 'bold', color: 'var(--success)', margin: '4px 0 0' }}>Now: {fmtMK(p.price)} <span style={{ color: 'var(--success)' }}>({p.discount_percent}% off)</span></p>
+      <div className="product-details-layout">
+        <div className="product-details-left">
+          <h2>{p.name}</h2>
+          <p>Category: {p.category}</p>
+          <div className="product-description-box">
+            <p>{p.description}</p>
+          </div>
+          {p.discount_percent > 0 ? (
+            <div>
+              <p style={{ textDecoration: 'line-through', color: 'var(--danger)', margin: 0 }}>Original: {fmtMK(p.original_price)}</p>
+              <p style={{ fontWeight: 'bold', color: 'var(--success)', margin: '4px 0 0' }}>Now: {fmtMK(p.price)} <span style={{ color: 'var(--success)' }}>({p.discount_percent}% off)</span></p>
+            </div>
+          ) : (
+            <p style={{ fontWeight: 'bold', color: 'var(--success)' }}>Price: {fmtMK(p.price)}</p>
+          )}
+          <div style={{ marginTop: 12, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <button
+              className="buy-like-btn"
+              onClick={(e) => onBuy && onBuy(p, { sourceEl: e.currentTarget, imageUrl: p.image_url })}
+            >
+              Buy
+            </button>
+          </div>
         </div>
-      ) : (
-        <p style={{ fontWeight: 'bold', color: 'var(--success)' }}>Price: {fmtMK(p.price)}</p>
-      )}
-      {p.image_url && <img src={p.image_url} alt={p.name} style={{maxWidth:320}} />}
-      <div style={{ marginTop: 12, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        <button
-          className="buy-like-btn"
-          onClick={(e) => onBuy && onBuy(p, { sourceEl: e.currentTarget, imageUrl: p.image_url })}
-        >
-          Buy
-        </button>
+        <div className="product-details-right">
+          {p.image_url && <img src={p.image_url} alt={p.name} style={{maxWidth:320, width: '100%', borderRadius: '12px'}} />}
+        </div>
       </div>
     </div>
   )

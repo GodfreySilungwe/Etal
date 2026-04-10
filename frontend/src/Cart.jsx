@@ -3,7 +3,7 @@ import React from 'react'
 const fmtMK = (val) => {
   const n = Number(val)
   if (val == null || val === '' || Number.isNaN(n)) return ''
-  return `MK ${n.toFixed(2)}`
+  return `MK ${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
 export default function Cart({ items, onRemove, onUpdateItem, onCheckoutNavigate, onQuoteNavigate, onRequestInstallation, onRequestDelivery, presenter }){
@@ -138,7 +138,7 @@ export default function Cart({ items, onRemove, onUpdateItem, onCheckoutNavigate
       </ul>
       {totalBefore !== total ? (
         <>
-          <p style={{ color: 'var(--danger)', fontWeight: 'bold' }}>Total before discounts: {fmtMK(totalBefore)}</p>
+          <p style={{ color: 'var(--danger)', fontWeight: 'bold', textDecoration: 'line-through' }}>Original total: {fmtMK(totalBefore)}</p>
           <p style={{ color: 'var(--success)', fontWeight: 'bold' }}>Total after discounts: {fmtMK(total)}</p>
           <p style={{ color: 'var(--success)', fontWeight: 'bold' }}>You save: {fmtMK(totalSavings)}</p>
         </>
