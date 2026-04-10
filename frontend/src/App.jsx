@@ -25,7 +25,12 @@ function Nav({ setView, cartCount }) {
   return (
     <nav className="nav">
       <div className="nav-group" style={{ alignItems: 'center' }}>
-        <img src="/uploads/Log.png" alt="ETAL Logo" style={{ height: '40px', marginRight: '20px' }} />
+        <img
+          src="/uploads/Log.png"
+          alt="ETAL Logo"
+          style={{ height: '40px', marginRight: '20px', cursor: 'pointer' }}
+          onClick={() => { console.log('Nav: logo -> home'); setView('home') }}
+        />
         <button onClick={() => { console.log('Nav: home'); setView('home') }}>Home</button>
         <button onClick={() => { console.log('Nav: products'); setView('products') }}>Products</button>
         <button onClick={() => { console.log('Nav: services'); setView('services') }}>Services & Installations</button>

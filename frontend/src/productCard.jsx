@@ -50,10 +50,10 @@ export default function ProductCard({
       <div className="card-bottom">
         {hasDiscount ? (
           <>
-            <p className="old-price">Old Price: {fmtMK(product.original_price)}</p>
-            <p className="new-price">Now: {fmtMK(product.price)}</p>
-            <p className="saved-line">
-              <span className="savings-icon" aria-hidden="true">🎉</span> Saved: {fmtMK(savedAmount)}
+            <p className="discount-compact">
+              <span className="price-old-inline">Old: {fmtMK(product.original_price)}</span>
+              <span className="price-now-inline">Now: {fmtMK(product.price)}</span>
+              <span className="saved-inline"><span className="savings-icon" aria-hidden="true">🎉</span> Saved: {fmtMK(savedAmount)}</span>
             </p>
           </>
         ) : (
