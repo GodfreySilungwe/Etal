@@ -21,9 +21,195 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; 
 
 .app main { padding:22px; max-width:1100px; margin:18px auto }
 
-.grid { display:flex; gap:16px; flex-wrap:wrap }
-.card { background:var(--card-bg); border-radius:12px; padding:0; width:240px; box-shadow: 0 6px 18px rgba(0,0,0,0.45); transition:transform .12s ease, box-shadow .12s ease; font-family: inherit; overflow: hidden }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
+}
+.card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 16px;
+  width: 100%;
+  min-height: 420px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+  transition: transform .2s ease, box-shadow .2s ease;
+  overflow: hidden;
+  position: relative;
 
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* HOVER */
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 35px rgba(0,0,0,0.18);
+}
+
+/* INNER CONTAINER */
+.card > div {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: space-between;
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+/* TOP (TITLE + DESCRIPTION) */
+.card h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1f2a44;
+  margin-bottom: 6px;
+}
+
+.card p {
+  font-size: 0.9rem;
+  color: #555;
+  margin: 4px 0;
+}
+
+/* IMAGE CENTER (use background properly) */
+.card {
+  background-size: 70%;
+  background-repeat: no-repeat;
+  background-position: center 55%;
+}
+
+/* PUSH CONTENT APART */
+.card > div > div {
+  margin-top: auto;
+}
+
+/* PRICE SECTION (BOTTOM) */
+.card p[style*="font-weight: bold"] {
+  color: var(--success) !important;
+  font-size: 1.15rem;
+}
+
+.card p[style*="line-through"] {
+  color: var(--danger) !important;
+  font-size: 0.85rem;
+}
+
+/* BUTTON */
+.card button {
+  margin-top: 10px;
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, var(--primary), var(--primary-600));
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* BADGE */
+.card::after {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--primary);
+  color: white;
+  font-size: 0.7rem;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+.product-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 16px;
+  min-height: 420px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+  transition: 0.2s ease;
+  position: relative;
+  cursor: pointer;
+}
+
+.product-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 35px rgba(0,0,0,0.18);
+}
+
+/* BADGE */
+.product-card .badge {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.7rem;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+/* TOP */
+.card-top h3 {
+  font-size: 1.05rem;
+  color: #1f2a44;
+  margin-bottom: 6px;
+}
+
+.card-top p {
+  font-size: 0.9rem;
+  color: #555;
+}
+
+/* IMAGE */
+.card-image {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 160px;
+  margin: 10px 0;
+}
+
+.card-image img {
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+/* BOTTOM */
+.card-bottom {
+  margin-top: auto;
+}
+
+.old-price {
+  text-decoration: line-through;
+  color: var(--danger);
+  font-size: 0.85rem;
+}
+
+.new-price {
+  color: var(--success);
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+/* BUTTON */
+.product-card button {
+  margin-top: 10px;
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, var(--primary), var(--primary-600));
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
 .rainbow-text {
   font-size: 2.6rem;
   font-weight: 800;

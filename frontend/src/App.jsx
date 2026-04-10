@@ -12,6 +12,7 @@ import InstallationRequest from './InstallationRequest'
 import DeliveryRequest from './DeliveryRequest'
 import AboutUs from './AboutUs'
 import Checkout from './Checkout'
+import ProductCard from './ProductCard'
 
 const fmtMK = (val) => {
   const n = Number(val)
@@ -92,23 +93,12 @@ function Nav({ setView, cartCount }) {
               <h2>{cat.name}</h2>
               <div className="grid">
                 {productsByCategory[cat.id].map(p => (
-                  <div key={p.id} className="card" style={{ cursor: 'pointer', backgroundImage: p.image_url ? `url(${p.image_url})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center', color: p.image_url ? 'white' : 'inherit' }} onClick={() => onSelect(p.id)}>
-                    <div style={{ background: p.image_url ? 'rgba(0,0,0,0.6)' : 'transparent', padding: '14px', borderRadius: '12px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                      <h3>{p.name}</h3>
-                      <div>
-                        {p.discount_percent > 0 ? (
-                          <div>
-                            <p style={{ textDecoration: 'line-through', color: 'var(--danger)', margin: 0 }}>Original: {fmtMK(p.original_price)}</p>
-                            <p style={{ fontWeight: 'bold', color: 'var(--success)', margin: '4px 0 0' }}>Now: {fmtMK(p.price)} <span style={{ color: 'var(--success)' }}>({p.discount_percent}% off)</span></p>
-                          </div>
-                        ) : (
-                          <p style={{ fontWeight: 'bold', color: 'var(--success)', margin: 0 }}>Price: {fmtMK(p.price)}</p>
-                        )}
-                        <p style={{ margin: '8px 0 0' }}>{p.description?.slice(0, 60)}...</p>
-                        <button style={{ marginTop: 10, width: '100%', padding: '10px 0', borderRadius: 8, border: 'none', background: 'var(--primary)', color: 'white', cursor: 'pointer' }} onClick={(e)=>{ e.stopPropagation(); onAddToCart(p) }}>Buy</button>
-                      </div>
-                    </div>
-                  </div>
+                  <ProductCard
+                    key={p.id}
+                    product={p}
+                    onSelect={onSelect}
+                    onAddToCart={onAddToCart}
+                  />
                 ))}
               </div>
             </div>
