@@ -91,7 +91,7 @@ function Nav({ setView, cartCount }) {
         categories.map(cat => (
           productsByCategory[cat.id] && productsByCategory[cat.id].length > 0 && (
             <div key={cat.id} style={{ marginBottom: '40px' }}>
-              <h2>{cat.name}</h2>
+              <h2 className="home-category-title">{cat.name}</h2>
               <div className="grid">
                 {productsByCategory[cat.id].map(p => (
                   <ProductCard

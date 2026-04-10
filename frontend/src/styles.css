@@ -125,7 +125,7 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; 
   background: #fff;
   border-radius: 20px;
   padding: 10px 14px 14px;
-  min-height: 420px;
+  min-height: 360px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -174,8 +174,8 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; 
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 160px;
-  margin: 10px 0;
+  height: 130px;
+  margin: 6px 0;
 }
 
 .card-image img {
@@ -228,6 +228,18 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; 
   color: #991b1b;
   border-color: rgba(239, 68, 68, 0.32);
 }
+.saved-line {
+  margin: 4px 0 0;
+  color: #0f6a33;
+  font-weight: 700;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.savings-icon {
+  font-size: 1rem;
+}
 
 /* BUTTON */
 .product-card button {
@@ -258,6 +270,18 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; 
   letter-spacing: 0.02em;
   color: #ffe9ee;
   text-shadow: 0 2px 10px rgba(200, 16, 46, 0.35);
+}
+.home-category-title {
+  display: inline-block;
+  margin: 0 0 12px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 1.05rem;
+  font-style: italic;
+  letter-spacing: 0.03em;
+  color: #fff4f7;
+  background: linear-gradient(90deg, rgba(200,16,46,0.85), rgba(155,15,37,0.85));
+  box-shadow: 0 8px 18px rgba(200,16,46,0.25);
 }
 .card:hover{ transform:translateY(-6px); box-shadow:0 12px 30px rgba(15,23,42,0.12) }
 .card h3{ margin:0 0 6px 0; font-size:1.05rem }

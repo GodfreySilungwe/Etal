@@ -17,6 +17,10 @@ export default function ProductCard({
 }) {
   const stock = Number(product.stock ?? 0)
   const stockClass = stock <= 0 ? 'stock-line stock-out' : stock <= 5 ? 'stock-line stock-low' : 'stock-line stock-in'
+  const hasDiscount = Number(product.discount_percent) > 0
+  const oldPrice = Number(product.original_price) || 0
+  const newPrice = Number(product.price) || 0
+  const savedAmount = Math.max(oldPrice - newPrice, 0)
 
   const handleSelect = () => {
     if (onSelect) onSelect(product.id)
@@ -44,11 +48,12 @@ export default function ProductCard({
 
       {/* BOTTOM */}
       <div className="card-bottom">
-        {product.discount_percent > 0 ? (
+        {hasDiscount ? (
           <>
-            <p className="old-price">{fmtMK(product.original_price)}</p>
-            <p className="new-price">
-              {fmtMK(product.price)} ({product.discount_percent}% off)
+            <p className="old-price">Old Price: {fmtMK(product.original_price)}</p>
+            <p className="new-price">Now: {fmtMK(product.price)}</p>
+            <p className="saved-line">
+              <span className="savings-icon" aria-hidden="true">🎉</span> Saved: {fmtMK(savedAmount)}
             </p>
           </>
         ) : (
