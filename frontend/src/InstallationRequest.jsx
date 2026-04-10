@@ -19,18 +19,24 @@ export default function InstallationRequest({ presenter, requestContext }){
     if(!location || !date || !product) return alert('Please fill all fields')
     setLoading(true)
     try{
+      const rawId = requestContext?.product?.id
+      const numericProductId = typeof rawId === 'number'
+        ? rawId
+        : (typeof rawId === 'string' && /^\d+$/.test(rawId) ? Number(rawId) : null)
+
       await presenter.createInstallation({
         customer_location: location,
         preferred_date: date,
         product,
-        product_id: requestContext?.product?.id,
+        product_id: numericProductId,
         product_price: productPrice
       })
       alert('Installation request submitted')
       setLocation(''); setDate(''); setProduct(''); setProductPrice('')
     }catch(err){
       console.error(err)
-      alert('Submission failed')
+      const msg = err?.response?.data?.error || err?.message || 'Submission failed'
+      alert(`Submission failed: ${msg}`)
     }finally{ setLoading(false) }
   }
 

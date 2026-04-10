@@ -5,5 +5,6 @@ const { authenticateToken } = require('../auth');
 
 router.post('/', installationController.create);
 router.get('/', authenticateToken, installationController.list);
+router.patch('/:id/status', authenticateToken, installationController.updateStatus);
 
 module.exports = router;

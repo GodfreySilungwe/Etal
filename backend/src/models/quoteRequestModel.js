@@ -18,11 +18,38 @@ async function ensureTable() {
 async function create(data) {
   await ensureTable();
   const { customer_name, phone, email, details, product_details } = data;
+  let items = [];
+  try {
+    items = typeof product_details === 'string' ? JSON.parse(product_details || '[]') : (product_details || []);
+  } catch (e) {
+    items = [];
+  }
+
+  const normalizedItems = Array.isArray(items) ? items.map((item) => {
+    const qty = Number(item?.quantity) || 1;
+    const price = Number(item?.price) || 0;
+    const originalPrice = item?.discount_percent > 0 ? (Number(item?.original_price) || price) : price;
+    const discountPercent = Number(item?.discount_percent) || 0;
+    const discountAmountPerUnit = Math.max(originalPrice - price, 0);
+    const lineAmount = price * qty;
+    return {
+      id: item?.id ?? null,
+      name: item?.name || 'Unknown Item',
+      category: item?.category || 'Uncategorized',
+      quantity: qty,
+      unit_price: price,
+      original_unit_price: originalPrice,
+      discount_percent: discountPercent,
+      discount_amount_per_unit: discountAmountPerUnit,
+      line_amount: lineAmount
+    };
+  }) : [];
+
   const res = await pool.query(
     `INSERT INTO quote_requests(customer_name, phone, email, details, product_details)
      VALUES($1,$2,$3,$4,$5)
      RETURNING *`,
-    [customer_name, phone, email || null, details || null, product_details || null]
+    [customer_name, phone, email || null, details || null, JSON.stringify(normalizedItems)]
   );
   return res.rows[0];
 }

@@ -111,4 +111,14 @@ export default class AdminPresenter {
     const res = await axios.delete(`http://localhost:4000/api/services/${id}`, this.authConfig())
     return res.data
   }
+
+  async getInstallationRequests() {
+    const res = await axios.get('http://localhost:4000/api/installation-requests', this.authConfig())
+    return Array.isArray(res.data) ? res.data : []
+  }
+
+  async updateInstallationRequestStatus(id, status) {
+    const res = await axios.patch(`http://localhost:4000/api/installation-requests/${id}/status`, { status }, this.authConfig())
+    return res.data
+  }
 }

@@ -456,6 +456,39 @@ function QuoteRequestsAdmin({ presenter }) {
             <p><strong>Email:</strong> {it.email || '-'}</p>
             <p><strong>Details:</strong> {it.details || '-'}</p>
             <p><strong>Requested:</strong> {new Date(it.requested_at).toLocaleString()}</p>
+            <div style={{ marginTop: 8 }}>
+              <strong>Quoted Items</strong>
+              <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 6 }}>
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '4px' }}>Name</th>
+                    <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '4px' }}>Category</th>
+                    <th style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: '4px' }}>Qty</th>
+                    <th style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: '4px' }}>Price</th>
+                    <th style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: '4px' }}>Discount</th>
+                    <th style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: '4px' }}>Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(() => {
+                    let rows = []
+                    try { rows = JSON.parse(it.product_details || '[]') } catch (e) { rows = [] }
+                    return rows.map((r, idx) => (
+                      <tr key={`${it.id}-${idx}`}>
+                        <td style={{ padding: '4px' }}>{r.name || '-'}</td>
+                        <td style={{ padding: '4px' }}>{r.category || '-'}</td>
+                        <td style={{ padding: '4px', textAlign: 'right' }}>{r.quantity ?? 1}</td>
+                        <td style={{ padding: '4px', textAlign: 'right' }}>{fmtMK(r.unit_price)}</td>
+                        <td style={{ padding: '4px', textAlign: 'right' }}>
+                          {r.discount_percent ? `${r.discount_percent}%` : '0%'}
+                        </td>
+                        <td style={{ padding: '4px', textAlign: 'right' }}>{fmtMK(r.line_amount)}</td>
+                      </tr>
+                    ))
+                  })()}
+                </tbody>
+              </table>
+            </div>
             <label>
               <strong>Status: </strong>
               <select value={it.status} onChange={(e) => onStatusChange(it.id, e.target.value)}>
@@ -466,6 +499,73 @@ function QuoteRequestsAdmin({ presenter }) {
           </div>
         ))}
       </div>
+    </div>
+  )
+}
+
+function ServiceRequestsAdmin({ presenter }) {
+  const [items, setItems] = useState([])
+  const [loading, setLoading] = useState(false)
+
+  async function load() {
+    setLoading(true)
+    try {
+      const res = await presenter.getInstallationRequests()
+      setItems(Array.isArray(res) ? res : [])
+    } catch (e) {
+      console.error(e)
+      setItems([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function onStatusChange(id, status) {
+    try {
+      await presenter.updateInstallationRequestStatus(id, status)
+      await load()
+    } catch (e) {
+      alert('Failed to update service request status')
+    }
+  }
+
+  useEffect(() => { load() }, [])
+
+  if (loading) return <p>Loading service requests...</p>
+
+  return (
+    <div>
+      <h3>Service Requests</h3>
+      {items.length === 0 && <p>No service requests yet.</p>}
+      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <thead>
+          <tr>
+            <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Service/Product</th>
+            <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Location</th>
+            <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Preferred Date</th>
+            <th style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: '6px' }}>Fee</th>
+            <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Requested</th>
+            <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {items.map((it) => (
+            <tr key={it.id}>
+              <td style={{ padding: '6px' }}>{it.product}</td>
+              <td style={{ padding: '6px' }}>{it.customer_location}</td>
+              <td style={{ padding: '6px' }}>{it.preferred_date ? String(it.preferred_date).slice(0, 10) : '-'}</td>
+              <td style={{ padding: '6px', textAlign: 'right' }}>{fmtMK(it.product_price)}</td>
+              <td style={{ padding: '6px' }}>{new Date(it.requested_at).toLocaleString()}</td>
+              <td style={{ padding: '6px' }}>
+                <select value={it.status || 'pending'} onChange={(e) => onStatusChange(it.id, e.target.value)}>
+                  <option value="pending">Pending</option>
+                  <option value="complete">Complete</option>
+                </select>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   )
 }
@@ -659,6 +759,7 @@ export default function Admin({ token, onLogout, onAuth, presenter }) {
         <button className={view === 'quote-report' ? 'primary' : 'ghost'} onClick={() => setView('quote-report')}>Quotation Report</button>
         <button className={view === 'paid' ? 'primary' : 'ghost'} onClick={() => setView('paid')}>Paid Items</button>
         <button className={view === 'quotes' ? 'primary' : 'ghost'} onClick={() => setView('quotes')}>Quote Requests</button>
+        <button className={view === 'service-requests' ? 'primary' : 'ghost'} onClick={() => setView('service-requests')}>Service Requests</button>
       </div>
 
       {view === 'products' && <ProductsAdmin presenter={presenter} token={token} />}
@@ -668,6 +769,7 @@ export default function Admin({ token, onLogout, onAuth, presenter }) {
       {view === 'quote-report' && <QuotationReport presenter={presenter} />}
       {view === 'paid' && <PaidItems presenter={presenter} />}
       {view === 'quotes' && <QuoteRequestsAdmin presenter={presenter} />}
+      {view === 'service-requests' && <ServiceRequestsAdmin presenter={presenter} />}
     </div>
   )
 }

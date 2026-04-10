@@ -22,4 +22,19 @@ async function list(req, res) {
   }
 }
 
-module.exports = { create, list };
+async function updateStatus(req, res) {
+  try {
+    const status = String(req.body.status || '').toLowerCase();
+    if (!['pending', 'complete'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid status' });
+    }
+    const updated = await installationModel.updateStatus(req.params.id, status);
+    if (!updated) return res.status(404).json({ error: 'Not found' });
+    res.json(updated);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to update installation request status' });
+  }
+}
+
+module.exports = { create, list, updateStatus };
