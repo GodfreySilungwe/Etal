@@ -10,9 +10,11 @@ async function ensureTable() {
       details TEXT,
       product_details TEXT,
       status TEXT NOT NULL DEFAULT 'pending',
+      processed_at TIMESTAMP,
       requested_at TIMESTAMP DEFAULT now()
     );
   `);
+  await pool.query(`ALTER TABLE quote_requests ADD COLUMN IF NOT EXISTS processed_at TIMESTAMP`);
 }
 
 async function create(data) {
@@ -62,7 +64,10 @@ async function list() {
 
 async function updateStatus(id, status) {
   await ensureTable();
-  const res = await pool.query('UPDATE quote_requests SET status=$1 WHERE id=$2 RETURNING *', [status, id]);
+  const res = await pool.query(
+    'UPDATE quote_requests SET status=$1, processed_at=CASE WHEN $1 = \'complete\' THEN now() ELSE NULL END WHERE id=$2 RETURNING *',
+    [status, id]
+  );
   return res.rows[0];
 }
 

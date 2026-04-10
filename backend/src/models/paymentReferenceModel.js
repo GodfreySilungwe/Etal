@@ -10,9 +10,11 @@ async function ensureTable() {
       transaction_reference TEXT NOT NULL,
       product_details TEXT,
       service_status TEXT NOT NULL DEFAULT 'pending',
+      processed_at TIMESTAMP,
       submitted_at TIMESTAMP DEFAULT now()
     );
   `);
+  await pool.query(`ALTER TABLE payment_references ADD COLUMN IF NOT EXISTS processed_at TIMESTAMP`);
 }
 
 async function create(data) {
@@ -91,7 +93,7 @@ async function list() {
 async function updateStatus(id, service_status) {
   await ensureTable();
   const res = await pool.query(
-    'UPDATE payment_references SET service_status=$1 WHERE id=$2 RETURNING *',
+    'UPDATE payment_references SET service_status=$1, processed_at=CASE WHEN $1 = \'complete\' THEN now() ELSE NULL END WHERE id=$2 RETURNING *',
     [service_status, id]
   );
   return res.rows[0];

@@ -387,13 +387,15 @@ function PaidItems({ presenter }) {
   useEffect(() => { load() }, [])
 
   if (loading) return <p>Loading paid items...</p>
+  const pendingItems = items.filter((it) => (it.service_status || 'pending') !== 'complete')
+  const processedItems = items.filter((it) => (it.service_status || 'pending') === 'complete')
 
   return (
     <div>
-      <h3>Paid Items</h3>
-      {items.length === 0 && <p>No paid items yet.</p>}
+      <h3>Paid Items (Pending)</h3>
+      {pendingItems.length === 0 && <p>No pending paid items.</p>}
       <div style={{ display: 'grid', gap: 12 }}>
-        {items.map((it) => (
+        {pendingItems.map((it) => (
           <div key={it.id} style={{ border: '1px solid #ddd', borderRadius: 10, padding: 12, background: 'rgba(255,255,255,0.92)', color: '#111827' }}>
             <p><strong>Name:</strong> {it.customer_name}</p>
             <p><strong>Phone:</strong> {it.phone}</p>
@@ -445,6 +447,31 @@ function PaidItems({ presenter }) {
           </div>
         ))}
       </div>
+
+      <h4 style={{ marginTop: 18 }}>Processed Paid Items</h4>
+      {processedItems.length === 0 && <p>No processed paid items yet.</p>}
+      {processedItems.length > 0 && (
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr>
+              <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Customer</th>
+              <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Phone</th>
+              <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Date Paid</th>
+              <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Date Processed</th>
+            </tr>
+          </thead>
+          <tbody>
+            {processedItems.map((it) => (
+              <tr key={`processed-paid-${it.id}`}>
+                <td style={{ padding: '6px' }}>{it.customer_name}</td>
+                <td style={{ padding: '6px' }}>{it.phone}</td>
+                <td style={{ padding: '6px' }}>{new Date(it.submitted_at).toLocaleString()}</td>
+                <td style={{ padding: '6px' }}>{it.processed_at ? new Date(it.processed_at).toLocaleString() : '-'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   )
 }
@@ -478,13 +505,15 @@ function QuoteRequestsAdmin({ presenter }) {
   useEffect(() => { load() }, [])
 
   if (loading) return <p>Loading quote requests...</p>
+  const pendingItems = items.filter((it) => (it.status || 'pending') !== 'complete')
+  const processedItems = items.filter((it) => (it.status || 'pending') === 'complete')
 
   return (
     <div>
-      <h3>Quote Requests</h3>
-      {items.length === 0 && <p>No quote requests yet.</p>}
+      <h3>Quote Requests (Pending)</h3>
+      {pendingItems.length === 0 && <p>No pending quote requests.</p>}
       <div style={{ display: 'grid', gap: 12 }}>
-        {items.map((it) => (
+        {pendingItems.map((it) => (
           <div key={it.id} style={{ border: '1px solid #ddd', borderRadius: 10, padding: 12, background: 'rgba(255,255,255,0.92)', color: '#111827' }}>
             <p><strong>Name:</strong> {it.customer_name}</p>
             <p><strong>Phone:</strong> {it.phone}</p>
@@ -534,6 +563,33 @@ function QuoteRequestsAdmin({ presenter }) {
           </div>
         ))}
       </div>
+
+      <h4 style={{ marginTop: 18 }}>Processed Quotations</h4>
+      {processedItems.length === 0 && <p>No processed quotations yet.</p>}
+      {processedItems.length > 0 && (
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr>
+              <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Customer</th>
+              <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Phone</th>
+              <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Email</th>
+              <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Date Requested</th>
+              <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Date Processed</th>
+            </tr>
+          </thead>
+          <tbody>
+            {processedItems.map((it) => (
+              <tr key={`processed-quote-${it.id}`}>
+                <td style={{ padding: '6px' }}>{it.customer_name}</td>
+                <td style={{ padding: '6px' }}>{it.phone}</td>
+                <td style={{ padding: '6px' }}>{it.email || '-'}</td>
+                <td style={{ padding: '6px' }}>{new Date(it.requested_at).toLocaleString()}</td>
+                <td style={{ padding: '6px' }}>{it.processed_at ? new Date(it.processed_at).toLocaleString() : '-'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   )
 }
