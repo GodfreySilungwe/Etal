@@ -400,6 +400,41 @@ function PaidItems({ presenter }) {
             <p><strong>Method:</strong> {it.method_used}</p>
             <p><strong>Transaction Ref:</strong> {it.transaction_reference}</p>
             <p><strong>Submitted:</strong> {new Date(it.submitted_at).toLocaleString()}</p>
+            <div style={{ marginTop: 8 }}>
+              <strong>Paid Items</strong>
+              <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 6 }}>
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '4px' }}>Name</th>
+                    <th style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: '4px' }}>Qty</th>
+                    <th style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: '4px' }}>Discount</th>
+                    <th style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: '4px' }}>Price</th>
+                    <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '4px' }}>Install/Service</th>
+                    <th style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: '4px' }}>Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(() => {
+                    let rows = []
+                    try { rows = JSON.parse(it.product_details || '[]') } catch (e) { rows = [] }
+                    return rows.map((r, idx) => (
+                      <tr key={`${it.id}-${idx}`}>
+                        <td style={{ padding: '4px' }}>{r.name || '-'}</td>
+                        <td style={{ padding: '4px', textAlign: 'right' }}>{r.quantity ?? 1}</td>
+                        <td style={{ padding: '4px', textAlign: 'right' }}>{r.discount_percent ? `${r.discount_percent}%` : '0%'}</td>
+                        <td style={{ padding: '4px', textAlign: 'right' }}>{fmtMK(r.price)}</td>
+                        <td style={{ padding: '4px' }}>
+                          {r.service_included
+                            ? `Yes (${fmtMK(r.service_fee)})`
+                            : 'No'}
+                        </td>
+                        <td style={{ padding: '4px', textAlign: 'right' }}>{fmtMK(r.total_price)}</td>
+                      </tr>
+                    ))
+                  })()}
+                </tbody>
+              </table>
+            </div>
             <label>
               <strong>Service Status: </strong>
               <select value={it.service_status} onChange={(e) => onStatusChange(it.id, e.target.value)}>

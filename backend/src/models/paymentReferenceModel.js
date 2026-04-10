@@ -18,8 +18,48 @@ async function ensureTable() {
 async function create(data) {
   await ensureTable();
   const { customer_name, phone, method_used, transaction_reference, product_details } = data;
-  const details = typeof product_details === 'string' ? JSON.parse(product_details || '[]') : (product_details || []);
-  const text = JSON.stringify(details);
+  let details = [];
+  try {
+    details = typeof product_details === 'string' ? JSON.parse(product_details || '[]') : (product_details || []);
+  } catch (e) {
+    details = [];
+  }
+
+  const normalizedDetails = Array.isArray(details) ? details.map((item) => {
+    const qty = Number(item?.quantity) || 1;
+    const basePrice = Number(item?.price) || 0;
+    const originalUnitPrice = item?.discount_percent > 0 ? (Number(item?.original_price) || basePrice) : basePrice;
+    const discountPercent = Number(item?.discount_percent) || 0;
+    const appliedDiscountPerUnit = Math.max(originalUnitPrice - basePrice, 0);
+    const installationIncluded = !!item?.installation_selected;
+    const deliveryIncluded = !!item?.delivery_selected;
+    const installationFee = installationIncluded ? (Number(item?.installation_price) || 0) : 0;
+    const deliveryFee = deliveryIncluded ? (Number(item?.delivery_price) || 0) : 0;
+    const serviceFee = installationFee + deliveryFee;
+    const totalUnitPrice = basePrice + serviceFee;
+    const lineTotal = totalUnitPrice * qty;
+
+    return {
+      id: item?.id ?? null,
+      name: item?.name || 'Unknown Item',
+      category: item?.category || 'Uncategorized',
+      quantity: qty,
+      price: basePrice,
+      original_price: originalUnitPrice,
+      discount_percent: discountPercent,
+      applied_discount_per_unit: appliedDiscountPerUnit,
+      installation_included: installationIncluded,
+      installation_fee: installationFee,
+      delivery_included: deliveryIncluded,
+      delivery_fee: deliveryFee,
+      service_included: serviceFee > 0,
+      service_fee: serviceFee,
+      total_unit_price: totalUnitPrice,
+      total_price: lineTotal
+    };
+  }) : [];
+
+  const text = JSON.stringify(normalizedDetails);
 
   const res = await pool.query(
     `INSERT INTO payment_references(customer_name, phone, method_used, transaction_reference, product_details)
@@ -28,8 +68,8 @@ async function create(data) {
     [customer_name, phone, method_used, transaction_reference, text]
   );
 
-  if (Array.isArray(details)) {
-    for (const item of details) {
+  if (Array.isArray(normalizedDetails)) {
+    for (const item of normalizedDetails) {
       if (!item || !item.id) continue;
       const qty = Number(item.quantity) || 1;
       await pool.query(
