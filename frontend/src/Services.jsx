@@ -45,6 +45,13 @@ export default function Services({ presenter, setView, onRequestInstallation }) 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '40px' }}>
           {services.map((s) => (
             <div key={s.id} style={{ textAlign: 'center', background: 'rgba(255,255,255,0.9)', color: '#111827', borderRadius: 12, padding: 16 }}>
+              {s.image_url && (
+                <img
+                  src={s.image_url}
+                  alt={s.name}
+                  style={{ width: '100%', height: '180px', objectFit: 'cover', borderRadius: '8px', marginBottom: '10px' }}
+                />
+              )}
               <h3>{s.name}</h3>
               <p>{s.description || 'No description provided.'}</p>
               <p><strong>{fmtMK(s.price)}</strong></p>

@@ -69,6 +69,7 @@ async function initDb() {
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     description TEXT,
+    image_url TEXT,
     price NUMERIC NOT NULL DEFAULT 0,
     created_at TIMESTAMP DEFAULT now()
   );
@@ -119,6 +120,7 @@ async function initDb() {
   await pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS delivery_price NUMERIC`);
   await pool.query(`ALTER TABLE payment_references ADD COLUMN IF NOT EXISTS service_status TEXT NOT NULL DEFAULT 'pending'`);
   await pool.query(`ALTER TABLE quote_requests ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'pending'`);
+  await pool.query(`ALTER TABLE services ADD COLUMN IF NOT EXISTS image_url TEXT`);
 
   // Seed a default category and sample product if none exist
   const catRes = await pool.query('SELECT COUNT(*) FROM categories');

@@ -67,6 +67,11 @@ export default class AdminPresenter {
     return res.data
   }
 
+  async getQuotationReport() {
+    const res = await axios.get('http://localhost:4000/api/reports/quotations', this.authConfig())
+    return res.data
+  }
+
   async getPaymentReferences() {
     const res = await axios.get('http://localhost:4000/api/payment-references', this.authConfig())
     return res.data

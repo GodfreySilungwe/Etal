@@ -3,6 +3,7 @@ const router = express.Router();
 const { authenticateToken } = require('../auth');
 const invoiceModel = require('../models/invoiceModel');
 const paymentReferenceModel = require('../models/paymentReferenceModel');
+const quoteRequestModel = require('../models/quoteRequestModel');
 
 router.get('/sales', authenticateToken, async (req, res) => {
   try {
@@ -72,6 +73,38 @@ router.get('/sales', authenticateToken, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to fetch sales report' });
+  }
+});
+
+router.get('/quotations', authenticateToken, async (req, res) => {
+  try {
+    const quotes = await quoteRequestModel.list();
+    const byStatus = { pending: 0, complete: 0 };
+    const byDay = {};
+
+    quotes.forEach((q) => {
+      const status = (q.status || 'pending').toLowerCase();
+      if (status === 'complete') byStatus.complete += 1;
+      else byStatus.pending += 1;
+
+      const dateKey = q.requested_at ? new Date(q.requested_at).toISOString().slice(0, 10) : 'unknown';
+      if (!byDay[dateKey]) byDay[dateKey] = { date: dateKey, count: 0 };
+      byDay[dateKey].count += 1;
+    });
+
+    const daily = Object.values(byDay).sort((a, b) => a.date.localeCompare(b.date));
+    const peakDay = daily.reduce((best, d) => (!best || d.count > best.count ? d : best), null);
+
+    res.json({
+      totalQuotes: quotes.length,
+      byStatus,
+      daily,
+      peakDay,
+      quotes
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch quotation report' });
   }
 });
 

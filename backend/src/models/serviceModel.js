@@ -6,10 +6,12 @@ async function ensureTable() {
       id SERIAL PRIMARY KEY,
       name TEXT NOT NULL,
       description TEXT,
+      image_url TEXT,
       price NUMERIC NOT NULL DEFAULT 0,
       created_at TIMESTAMP DEFAULT now()
     );
   `);
+  await pool.query(`ALTER TABLE services ADD COLUMN IF NOT EXISTS image_url TEXT`);
 }
 
 async function getAll() {
@@ -20,20 +22,20 @@ async function getAll() {
 
 async function create(service) {
   await ensureTable();
-  const { name, description, price } = service;
+  const { name, description, image_url, price } = service;
   const res = await pool.query(
-    'INSERT INTO services(name, description, price) VALUES($1,$2,$3) RETURNING *',
-    [name, description || null, price || 0]
+    'INSERT INTO services(name, description, image_url, price) VALUES($1,$2,$3,$4) RETURNING *',
+    [name, description || null, image_url || null, price || 0]
   );
   return res.rows[0];
 }
 
 async function update(id, service) {
   await ensureTable();
-  const { name, description, price } = service;
+  const { name, description, image_url, price } = service;
   const res = await pool.query(
-    'UPDATE services SET name=$1, description=$2, price=$3 WHERE id=$4 RETURNING *',
-    [name, description || null, price || 0, id]
+    'UPDATE services SET name=$1, description=$2, image_url=$3, price=$4 WHERE id=$5 RETURNING *',
+    [name, description || null, image_url || null, price || 0, id]
   );
   return res.rows[0];
 }

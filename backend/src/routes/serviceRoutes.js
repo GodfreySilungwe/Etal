@@ -15,9 +15,9 @@ router.get('/', async (req, res) => {
 
 router.post('/', authenticateToken, async (req, res) => {
   try {
-    const { name, description, price } = req.body;
+    const { name, description, image_url, price } = req.body;
     if (!name) return res.status(400).json({ error: 'Name is required' });
-    const created = await serviceModel.create({ name, description, price });
+    const created = await serviceModel.create({ name, description, image_url, price });
     res.json(created);
   } catch (err) {
     console.error(err);
@@ -27,9 +27,9 @@ router.post('/', authenticateToken, async (req, res) => {
 
 router.put('/:id', authenticateToken, async (req, res) => {
   try {
-    const { name, description, price } = req.body;
+    const { name, description, image_url, price } = req.body;
     if (!name) return res.status(400).json({ error: 'Name is required' });
-    const updated = await serviceModel.update(req.params.id, { name, description, price });
+    const updated = await serviceModel.update(req.params.id, { name, description, image_url, price });
     if (!updated) return res.status(404).json({ error: 'Not found' });
     res.json(updated);
   } catch (err) {

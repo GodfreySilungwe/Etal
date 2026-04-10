@@ -473,7 +473,7 @@ function QuoteRequestsAdmin({ presenter }) {
 function ServicesAdmin({ presenter }) {
   const [services, setServices] = useState([])
   const [editing, setEditing] = useState(null)
-  const [form, setForm] = useState({ name: '', description: '', price: '' })
+  const [form, setForm] = useState({ name: '', description: '', image_url: '', price: '' })
 
   async function load() {
     try {
@@ -488,7 +488,21 @@ function ServicesAdmin({ presenter }) {
 
   function startEdit(s) {
     setEditing(s.id)
-    setForm({ name: s.name || '', description: s.description || '', price: s.price ?? '' })
+    setForm({ name: s.name || '', description: s.description || '', image_url: s.image_url || '', price: s.price ?? '' })
+  }
+
+  async function uploadServiceImage(file) {
+    if (!file) return
+    const token = localStorage.getItem('etal_token')
+    const fd = new FormData()
+    fd.append('image', file)
+    const res = await axios.post('http://localhost:4000/api/upload', fd, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        Authorization: token ? `Bearer ${token}` : ''
+      }
+    })
+    return res.data?.url
   }
 
   async function submit(e) {
@@ -496,12 +510,12 @@ function ServicesAdmin({ presenter }) {
     if (!form.name.trim()) return alert('Service name is required')
     const price = Number(form.price)
     if (Number.isNaN(price)) return alert('Price must be a number')
-    const payload = { name: form.name.trim(), description: form.description || null, price }
+    const payload = { name: form.name.trim(), description: form.description || null, image_url: form.image_url || null, price }
     try {
       if (editing) await presenter.updateService(editing, payload)
       else await presenter.createService(payload)
       setEditing(null)
-      setForm({ name: '', description: '', price: '' })
+      setForm({ name: '', description: '', image_url: '', price: '' })
       await load()
     } catch (err) {
       const msg = err?.response?.data?.error || 'Failed to save service'
@@ -521,6 +535,7 @@ function ServicesAdmin({ presenter }) {
         <h3>Services</h3>
         {services.map((s) => (
           <div key={s.id} style={{ border: '1px solid #ddd', borderRadius: 10, padding: 12, background: 'rgba(255,255,255,0.92)', color: '#111827', marginBottom: 10 }}>
+            {s.image_url && <img src={s.image_url} alt={s.name} style={{ width: '100%', maxHeight: 160, objectFit: 'cover', borderRadius: 8, marginBottom: 8 }} />}
             <p><strong>{s.name}</strong></p>
             <p>{s.description || '-'}</p>
             <p><strong>{fmtMK(s.price)}</strong></p>
@@ -536,11 +551,69 @@ function ServicesAdmin({ presenter }) {
         <form onSubmit={submit}>
           <input placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
           <textarea placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+          <input type="file" accept="image/*" onChange={async (e) => {
+            try {
+              const url = await uploadServiceImage(e.target.files?.[0])
+              if (url) setForm((prev) => ({ ...prev, image_url: url }))
+            } catch (err) {
+              alert('Service image upload failed')
+            }
+          }} />
+          {form.image_url && <div className="thumb"><img src={form.image_url} alt="service preview" /></div>}
           <input type="number" step="0.01" placeholder="Price" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} />
           <button type="submit">Save Service</button>
-          {editing && <button type="button" onClick={() => { setEditing(null); setForm({ name: '', description: '', price: '' }) }}>Cancel</button>}
+          {editing && <button type="button" onClick={() => { setEditing(null); setForm({ name: '', description: '', image_url: '', price: '' }) }}>Cancel</button>}
         </form>
       </div>
+    </div>
+  )
+}
+
+function QuotationReport({ presenter }) {
+  const [report, setReport] = useState(null)
+  const [loading, setLoading] = useState(false)
+
+  async function load() {
+    setLoading(true)
+    try {
+      const res = await presenter.getQuotationReport()
+      setReport(res)
+    } catch (e) {
+      console.error(e)
+      setReport(null)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { load() }, [])
+
+  if (loading) return <p>Loading quotation report...</p>
+  if (!report) return <p>Failed to load quotation report</p>
+
+  return (
+    <div>
+      <h3>Quotation Report</h3>
+      <p>Total quotes: {report.totalQuotes}</p>
+      <p>Pending: {report.byStatus?.pending ?? 0}</p>
+      <p>Complete: {report.byStatus?.complete ?? 0}</p>
+      <p>Peak quote day: {report.peakDay ? `${report.peakDay.date} (${report.peakDay.count})` : 'N/A'}</p>
+      <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 10 }}>
+        <thead>
+          <tr>
+            <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Date</th>
+            <th style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: '6px' }}>Quote Count</th>
+          </tr>
+        </thead>
+        <tbody>
+          {(report.daily || []).map((d) => (
+            <tr key={d.date}>
+              <td style={{ padding: '6px' }}>{d.date}</td>
+              <td style={{ padding: '6px', textAlign: 'right' }}>{d.count}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   )
 }
@@ -583,6 +656,7 @@ export default function Admin({ token, onLogout, onAuth, presenter }) {
         <button className={view === 'services' ? 'primary' : 'ghost'} onClick={() => setView('services')}>Services</button>
         <button className={view === 'categories' ? 'primary' : 'ghost'} onClick={() => setView('categories')}>Categories</button>
         <button className={view === 'sales' ? 'primary' : 'ghost'} onClick={() => setView('sales')}>Sales Report</button>
+        <button className={view === 'quote-report' ? 'primary' : 'ghost'} onClick={() => setView('quote-report')}>Quotation Report</button>
         <button className={view === 'paid' ? 'primary' : 'ghost'} onClick={() => setView('paid')}>Paid Items</button>
         <button className={view === 'quotes' ? 'primary' : 'ghost'} onClick={() => setView('quotes')}>Quote Requests</button>
       </div>
@@ -591,6 +665,7 @@ export default function Admin({ token, onLogout, onAuth, presenter }) {
       {view === 'services' && <ServicesAdmin presenter={presenter} />}
       {view === 'categories' && <CategoriesAdmin presenter={presenter} />}
       {view === 'sales' && <SalesReport presenter={presenter} />}
+      {view === 'quote-report' && <QuotationReport presenter={presenter} />}
       {view === 'paid' && <PaidItems presenter={presenter} />}
       {view === 'quotes' && <QuoteRequestsAdmin presenter={presenter} />}
     </div>
