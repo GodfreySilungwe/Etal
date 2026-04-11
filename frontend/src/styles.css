@@ -251,6 +251,16 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; 
   align-items: center;
   gap: 5px;
 }
+.discount-percent {
+  background: rgba(16, 185, 129, 0.12);
+  color: #047857;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+}
 .saved-line {
   margin: 4px 0 0;
   color: #0f6a33;

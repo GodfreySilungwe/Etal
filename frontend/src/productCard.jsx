@@ -51,6 +51,7 @@ export default function ProductCard({
         {hasDiscount ? (
           <>
             <p className="discount-compact">
+              <span className="discount-percent">{product.discount_percent}% off</span>
               <span className="price-old-inline">Old: {fmtMK(product.original_price)}</span>
               <span className="price-now-inline">Now: {fmtMK(product.price)}</span>
               <span className="saved-inline"><span className="savings-icon" aria-hidden="true">🎉</span> Saved: {fmtMK(savedAmount)}</span>
