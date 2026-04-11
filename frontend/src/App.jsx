@@ -21,7 +21,17 @@ const fmtMK = (val) => {
   return `MK ${n.toFixed(2)}`
 }
 
-function Nav({ setView, cartCount }) {
+function decodeJWT(token) {
+  try {
+    const payload = token.split('.')[1]
+    const decoded = JSON.parse(atob(payload))
+    return decoded
+  } catch (e) {
+    return null
+  }
+}
+
+function Nav({ setView, cartCount, userRole, token }) {
   return (
     <nav className="nav">
       <div className="nav-group" style={{ alignItems: 'center' }}>
@@ -35,7 +45,8 @@ function Nav({ setView, cartCount }) {
         <button onClick={() => { console.log('Nav: products'); setView('products') }}>Products</button>
         <button onClick={() => { console.log('Nav: services'); setView('services') }}>Services & Installations</button>
         <button onClick={() => { console.log('Nav: about'); setView('about') }}>About Us</button>
-        <button onClick={() => { console.log('Nav: admin'); setView('admin') }}>Admin</button>
+        {!token && <button onClick={() => { console.log('Nav: login'); setView('admin') }}>Login</button>}
+        {userRole === 'admin' && <button onClick={() => { console.log('Nav: admin'); setView('admin') }}>Admin</button>}
       </div>
 
       <div className="nav-group" style={{ justifyContent: 'flex-end', alignItems: 'center' }}>
@@ -136,6 +147,7 @@ function Contact() {
 export default function App() {
   const [view, setView] = useState('home')
   const [token, setToken] = useState(localStorage.getItem('etal_token') || null)
+  const [userRole, setUserRole] = useState(null)
   const [selectedProductId, setSelectedProductId] = useState(null)
   const [cart, setCart] = useState(() => {
     const storedCart = JSON.parse(localStorage.getItem('etal_cart')||'[]')
@@ -185,6 +197,16 @@ export default function App() {
     const t = localStorage.getItem('etal_token')
     if(t) axios.defaults.headers.common['Authorization'] = `Bearer ${t}`
   }, [])
+
+  // decode token to get user role
+  useEffect(() => {
+    if (token) {
+      const decoded = decodeJWT(token)
+      setUserRole(decoded?.role || null)
+    } else {
+      setUserRole(null)
+    }
+  }, [token])
 
   function onSubscribe(email) {
     if (!email || !email.includes('@')) return alert('Invalid email')
@@ -282,7 +304,7 @@ export default function App() {
 
   return (
     <div className="app">
-      <Nav setView={setView} cartCount={cart.reduce((total, item) => total + (item.quantity || 1), 0)} />
+      <Nav setView={setView} cartCount={cart.reduce((total, item) => total + (item.quantity || 1), 0)} userRole={userRole} token={token} />
       <ErrorBoundary>
         <main>
           {view === 'home' && <Home presenter={presenter} onSelect={(id)=>{ setSelectedProductId(id); setView('details') }} onAddToCart={handleBuy} onRequestInstallation={requestInstallation} onRequestDelivery={requestDelivery} />}

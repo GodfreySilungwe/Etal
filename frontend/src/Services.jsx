@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 const fmtMK = (val) => {
   const n = Number(val)
   if (val == null || val === '' || Number.isNaN(n)) return ''
-  return `MK ${n.toFixed(2)}`
+  return `MWK ${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
 export default function Services({ presenter, setView, onRequestInstallation }) {
@@ -37,7 +37,6 @@ export default function Services({ presenter, setView, onRequestInstallation }) 
   return (
     <div>
       <h1>Services & Installations</h1>
-      <p>Services are managed by admin and listed here with current pricing.</p>
 
       {loading ? (
         <p>Loading services...</p>
