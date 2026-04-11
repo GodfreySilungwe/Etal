@@ -379,7 +379,7 @@ VITE_API_URL=https://your-api-gateway-url.com
 
 If you want a traditional server-based deployment instead of serverless, the main differences are:
 
-### Architecture
+### Architectures
 
 ```
 Internet
