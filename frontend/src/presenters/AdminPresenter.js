@@ -121,4 +121,9 @@ export default class AdminPresenter {
     const res = await axios.patch(`http://localhost:4000/api/installation-requests/${id}/status`, { status }, this.authConfig())
     return res.data
   }
+
+  async getNewsletterSubscribers() {
+    const res = await axios.get('http://localhost:4000/api/newsletter', this.authConfig())
+    return Array.isArray(res.data) ? res.data : []
+  }
 }

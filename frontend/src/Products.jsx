@@ -7,6 +7,8 @@ export default function Products({ presenter, onSelect, onAddToCart, onRequestIn
   const [items, setItems] = useState([])
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(false)
+  const [mobileEmail, setMobileEmail] = useState('')
+  const [mobileSubscribeStatus, setMobileSubscribeStatus] = useState('')
 
   async function load() {
     setLoading(true)
@@ -17,6 +19,23 @@ export default function Products({ presenter, onSelect, onAddToCart, onRequestIn
       setItems([])
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function mobileSubscribe() {
+    if (!mobileEmail || !mobileEmail.includes('@')) {
+      setMobileSubscribeStatus('invalid')
+      setTimeout(() => setMobileSubscribeStatus(''), 3000)
+      return
+    }
+    try {
+      await presenter.subscribeNewsletter(mobileEmail)
+      setMobileSubscribeStatus('success')
+      setMobileEmail('')
+      setTimeout(() => setMobileSubscribeStatus(''), 3000)
+    } catch (e) {
+      setMobileSubscribeStatus('error')
+      setTimeout(() => setMobileSubscribeStatus(''), 3000)
     }
   }
 
@@ -63,6 +82,31 @@ export default function Products({ presenter, onSelect, onAddToCart, onRequestIn
           ))}
         </div>
       )}
+
+      {/* Mobile Subscribe Form */}
+      <div className="mobile-subscribe">
+        <h3>Stay Updated</h3>
+        <p>Get notified about new products and special offers</p>
+        <div className="mobile-subscribe-form">
+          <input
+            type="email"
+            placeholder="Enter your email address"
+            value={mobileEmail}
+            onChange={(e) => setMobileEmail(e.target.value)}
+            className="mobile-subscribe-input"
+          />
+          <button onClick={mobileSubscribe} className="mobile-subscribe-btn">
+            Subscribe
+          </button>
+        </div>
+        {mobileSubscribeStatus && (
+          <span className={`mobile-subscribe-status status-${mobileSubscribeStatus}`}>
+            {mobileSubscribeStatus === 'success' ? 'Subscribed!' :
+             mobileSubscribeStatus === 'invalid' ? 'Invalid email' :
+             mobileSubscribeStatus === 'error' ? 'Failed to subscribe' : ''}
+          </span>
+        )}
+      </div>
     </div>
   )
 }

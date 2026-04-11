@@ -31,7 +31,27 @@ function decodeJWT(token) {
   }
 }
 
-function Nav({ setView, cartCount, userRole, token }) {
+function Nav({ setView, cartCount, userRole, token, presenter }) {
+  const [email, setEmail] = useState('')
+  const [subscribeStatus, setSubscribeStatus] = useState('')
+
+  async function subscribe(){
+    if(!email || !email.includes('@')) {
+      setSubscribeStatus('invalid')
+      setTimeout(() => setSubscribeStatus(''), 3000)
+      return
+    }
+    try{
+      await presenter.subscribeNewsletter(email)
+      setSubscribeStatus('success')
+      setEmail('')
+      setTimeout(() => setSubscribeStatus(''), 3000)
+    }catch(e){
+      setSubscribeStatus('error')
+      setTimeout(() => setSubscribeStatus(''), 3000)
+    }
+  }
+
   return (
     <nav className="nav">
       <div className="nav-group" style={{ alignItems: 'center' }}>
@@ -45,6 +65,26 @@ function Nav({ setView, cartCount, userRole, token }) {
         <button onClick={() => { console.log('Nav: products'); setView('products') }}>Products</button>
         <button onClick={() => { console.log('Nav: services'); setView('services') }}>Services & Installations</button>
         <button onClick={() => { console.log('Nav: about'); setView('about') }}>About Us</button>
+
+        {/* Newsletter Subscribe */}
+        <div className="nav-subscribe">
+          <input
+            type="email"
+            placeholder="Enter your email address"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="nav-subscribe-input"
+          />
+          <button onClick={subscribe} className="nav-subscribe-btn">Subscribe</button>
+          {subscribeStatus && (
+            <span className={`nav-subscribe-status status-${subscribeStatus}`}>
+              {subscribeStatus === 'success' ? 'Subscribed!' :
+               subscribeStatus === 'invalid' ? 'Invalid email' :
+               subscribeStatus === 'error' ? 'Failed to subscribe' : ''}
+            </span>
+          )}
+        </div>
+
         {!token && <button onClick={() => { console.log('Nav: login'); setView('admin') }}>Login</button>}
         {userRole === 'admin' && <button onClick={() => { console.log('Nav: admin'); setView('admin') }}>Admin</button>}
       </div>
@@ -59,15 +99,9 @@ function Nav({ setView, cartCount, userRole, token }) {
 }
 
   function Home({ presenter, onSelect, onAddToCart, onRequestInstallation, onRequestDelivery }) {
-  const [email, setEmail] = useState('')
   const [categories, setCategories] = useState([])
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
-
-  async function subscribe(){
-    if(!email || !email.includes('@')) return alert('Invalid email')
-    try{ await presenter.subscribeNewsletter(email); alert('Subscribed') }catch(e){ alert('Failed') }
-  }
 
   useEffect(() => {
     async function load() {
@@ -123,11 +157,6 @@ function Nav({ setView, cartCount, userRole, token }) {
         ))
       )}
 
-      <div className="newsletter">
-        <h3>Subscribe to our Newsletter</h3>
-        <input placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <button onClick={subscribe}>Subscribe</button>
-      </div>
     </div>
   )
 }
@@ -328,7 +357,7 @@ export default function App() {
 
   return (
     <div className="app">
-      <Nav setView={setView} cartCount={cart.reduce((total, item) => total + (item.quantity || 1), 0)} userRole={userRole} token={token} />
+      <Nav setView={setView} cartCount={cart.reduce((total, item) => total + (item.quantity || 1), 0)} userRole={userRole} token={token} presenter={presenter} />
       <ErrorBoundary>
         <main>
           {view === 'home' && <Home presenter={presenter} onSelect={(id)=>{ setSelectedProductId(id); setView('details') }} onAddToCart={handleBuy} onRequestInstallation={requestInstallation} onRequestDelivery={requestDelivery} />}

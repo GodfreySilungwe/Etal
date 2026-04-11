@@ -687,6 +687,51 @@ function ServiceRequestsAdmin({ presenter }) {
   )
 }
 
+function NewsletterAdmin({ presenter }) {
+  const [subscribers, setSubscribers] = useState([])
+  const [loading, setLoading] = useState(false)
+
+  async function load() {
+    setLoading(true)
+    try {
+      const res = await presenter.getNewsletterSubscribers()
+      setSubscribers(Array.isArray(res) ? res : [])
+    } catch (e) {
+      console.error(e)
+      setSubscribers([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { load() }, [])
+
+  if (loading) return <p>Loading newsletter subscribers...</p>
+
+  return (
+    <div>
+      <h3>Newsletter Subscribers</h3>
+      {subscribers.length === 0 && <p>No subscribers yet.</p>}
+      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <thead>
+          <tr>
+            <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Email</th>
+            <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Subscribed At</th>
+          </tr>
+        </thead>
+        <tbody>
+          {subscribers.map((sub) => (
+            <tr key={sub.id}>
+              <td style={{ padding: '6px' }}>{sub.email}</td>
+              <td style={{ padding: '6px' }}>{new Date(sub.subscribed_at).toLocaleString()}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 function ServicesAdmin({ presenter }) {
   const [services, setServices] = useState([])
   const [editing, setEditing] = useState(null)
@@ -877,6 +922,7 @@ export default function Admin({ token, onLogout, onAuth, presenter }) {
         <button className={view === 'paid' ? 'primary' : 'ghost'} onClick={() => setView('paid')}>Paid Items</button>
         <button className={view === 'quotes' ? 'primary' : 'ghost'} onClick={() => setView('quotes')}>Quote Requests</button>
         <button className={view === 'service-requests' ? 'primary' : 'ghost'} onClick={() => setView('service-requests')}>Service Requests</button>
+        <button className={view === 'newsletter' ? 'primary' : 'ghost'} onClick={() => setView('newsletter')}>Newsletter</button>
       </div>
 
       {view === 'products' && <ProductsAdmin presenter={presenter} token={token} />}
@@ -887,6 +933,7 @@ export default function Admin({ token, onLogout, onAuth, presenter }) {
       {view === 'paid' && <PaidItems presenter={presenter} />}
       {view === 'quotes' && <QuoteRequestsAdmin presenter={presenter} />}
       {view === 'service-requests' && <ServiceRequestsAdmin presenter={presenter} />}
+      {view === 'newsletter' && <NewsletterAdmin presenter={presenter} />}
     </div>
   )
 }
