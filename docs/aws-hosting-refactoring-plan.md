@@ -28,7 +28,7 @@ Internet
     ↓
 [Lambda Functions] (Backend Logic)
     ↓
-[RDS PostgreSQL/Aurora] (Database)
+[Aurora(Database)
     ↓
 [S3 Bucket] (File Storage)
 ```
@@ -345,110 +345,28 @@ VITE_API_URL=https://your-api-gateway-url.com
 3. Monitor error rates closely after deployment
 4. Prepare quick rollback scripts
 
-## Step 12: Maintenance
+## Code Refactoring Status
 
-### 12.1 Regular Tasks
-- Monitor CloudWatch logs
-- Update Lambda function code
-- Rotate database credentials
-- Update SSL certificates
+✅ **COMPLETED**: Backend refactored for serverless deployment
+- Removed local file storage, implemented S3 uploads
+- Updated database connection for Lambda (connection pooling)
+- Added environment variable configuration
+- Created serverless-http handler (lambda.js)
+- Updated CORS for CloudFront domain
+- Added AWS SDK dependencies
 
-### 12.2 Scaling Considerations
-- Monitor Lambda concurrency limits
-- Consider API Gateway throttling
-- Plan for database scaling
+✅ **COMPLETED**: Frontend updated for cloud deployment
+- Replaced hardcoded localhost URLs with environment variables
+- Updated AdminPresenter.js and ProductPresenter.js
+- Removed local uploads proxy from Vite config
+- Added .env.example with required variables
 
-## Implementation Timeline
+✅ **COMPLETED**: Build configuration updated
+- Added Lambda build scripts with esbuild
+- Updated package.json dependencies
+- Created environment variable templates
 
-1. **Week 1**: Backend refactoring and testing
-2. **Week 2**: AWS infrastructure setup
-3. **Week 3**: Database migration and testing
-4. **Week 4**: Frontend deployment and validation
-5. **Week 5**: Security hardening and monitoring setup
-
-## Cost Estimate (Monthly)
-
-- **Lambda**: $5-20 (depending on usage)
-- **API Gateway**: $3-10
-- **CloudFront**: $10-50
-- **S3**: $1-5
-- **RDS**: $20-100 (depending on instance type)
-- **Total**: ~$40-185/month
-
-## Alternative Server-Based Approach (EC2 + Load Balancer)
-
-If you want a traditional server-based deployment instead of serverless, the main differences are:
-
-### Architectures
-
-```
-Internet
-    ↓
-[CloudFront Distribution]
-    ↓
-[S3 Bucket] (Static Frontend)
-    ↓
-[Elastic Load Balancer]
-    ↓
-[EC2 Instance(s)] (Node.js/Express Backend)
-    ↓
-[RDS PostgreSQL] (Database)
-    ↓
-[S3 Bucket] (File Storage)
-```
-
-### Key changes needed
-
-- Deploy the existing Express backend to one or more EC2 instances.
-- Use an Elastic Load Balancer (ELB) or Application Load Balancer (ALB) to route traffic.
-- Keep the backend server running continuously rather than using Lambda invocation-based scaling.
-- Continue using S3 for uploads, with the backend calling S3 directly.
-- Use RDS PostgreSQL as the shared database, exactly as in the serverless plan.
-
-### Benefits
-
-- Fewer code changes for the backend; the existing Express app can run largely unchanged.
-- Easier local-like debugging and monitoring.
-- More predictable performance for steady workloads.
-- Simpler deployment if you are already familiar with traditional servers.
-
-### Tradeoffs
-
-- Higher operational overhead: manage EC2 instances, patching, and instance health.
-- Lower automatic scaling efficiency compared to Lambda.
-- Potentially higher baseline cost for always-on servers.
-- More configuration required for load balancing and autoscaling.
-
-### Cost Estimate (Monthly)
-
-- **EC2 instance**: $20-80 for a t3.small/t3.medium instance depending on region and reserved/on-demand pricing
-- **Elastic Load Balancer**: $15-30
-- **CloudFront**: $10-50
-- **S3**: $1-5
-- **RDS**: $20-100
-- **Outbound data transfer**: $5-20 (variable)
-- **Total**: ~$70-285/month
-
-### When to choose server-based
-
-- Your app requires long-lived backend processes or WebSocket support.
-- You want to keep the current Express architecture unchanged.
-- You expect stable, predictable load and prefer a fixed-server model.
-- You need more direct control over instance-level configuration.
-
-### When to choose serverless
-
-- Your traffic is variable and you want pay-per-use scaling.
-- You want minimal server management and faster deployment iterations.
-- You prefer AWS-managed scaling and reduced operational overhead.
-- You are comfortable refactoring the backend for Lambda and API Gateway.
-
-## Next Steps
-
-1. Review and approve this plan
-2. Set up AWS account and permissions
-3. Begin with backend refactoring
-4. Test each component thoroughly before full deployment
+## Next Steps for Deployment
 
 ---
 

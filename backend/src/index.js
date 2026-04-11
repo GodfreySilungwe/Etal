@@ -2,9 +2,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const fs = require('fs');
-const path = require('path');
 const multer = require('multer');
+const AWS = require('aws-sdk');
 const { initDb } = require('./dbInit');
 const productRoutes = require('./routes/productRoutes');
 const authRoutes = require('./routes/authRoutes');
@@ -14,27 +13,45 @@ require('dotenv').config();
 
 dotenv.config();
 const app = express();
-app.use(cors());
+
+// Configure AWS SDK
+AWS.config.update({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: process.env.AWS_REGION || 'us-east-1'
+});
+
+const s3 = new AWS.S3();
+
+// Configure multer for memory storage (required for S3)
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
+
+// Helper function to upload to S3
+const uploadToS3 = async (file, key) => {
+  const params = {
+    Bucket: process.env.S3_BUCKET_NAME,
+    Key: key,
+    Body: file.buffer,
+    ContentType: file.mimetype,
+    ACL: 'public-read'
+  };
+  return s3.upload(params).promise();
+};
+
+// CORS configuration for CloudFront
+const corsOptions = {
+  origin: [
+    'http://localhost:5173', // For development
+    process.env.FRONTEND_URL, // CloudFront distribution URL
+  ].filter(Boolean), // Remove falsy values
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
 const PORT = process.env.PORT || 4000;
-
-// ensure uploads directory exists and serve static files
-const uploadsDir = path.join(__dirname, '..', 'uploads');
-fs.mkdirSync(uploadsDir, { recursive: true });
-app.use('/uploads', express.static(uploadsDir));
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadsDir);
-  },
-  filename: function (req, file, cb) {
-    const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    const ext = path.extname(file.originalname) || '';
-    cb(null, file.fieldname + '-' + unique + ext);
-  }
-});
-const upload = multer({ storage });
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
@@ -52,10 +69,22 @@ app.use('/api/quote-requests', require('./routes/quoteRequestRoutes'));
 app.use('/api/services', require('./routes/serviceRoutes'));
 
 // Upload image (protected)
-app.post('/api/upload', authenticateToken, upload.single('image'), (req, res) => {
-  if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
-  const relPath = `/uploads/${req.file.filename}`;
-  res.json({ url: relPath });
+app.post('/api/upload', authenticateToken, upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+
+    const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    const ext = require('path').extname(req.file.originalname) || '';
+    const key = `uploads/${req.file.fieldname}-${unique}${ext}`;
+
+    const result = await uploadToS3(req.file, key);
+    const url = `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/${key}`;
+
+    res.json({ url });
+  } catch (error) {
+    console.error('Upload error:', error);
+    res.status(500).json({ error: 'Failed to upload file' });
+  }
 });
 
 // Categories endpoints are kept here using model
@@ -91,14 +120,15 @@ app.delete('/api/categories/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// Initialize DB then start server
+// Initialize DB
 initDb()
   .then(() => {
-    app.listen(PORT, () => {
-      console.log(`Server listening on port ${PORT}`);
-    });
+    console.log('Database initialized successfully');
   })
   .catch((err) => {
     console.error('Failed to initialize database', err);
     process.exit(1);
   });
+
+// Export for serverless deployment
+module.exports = app;

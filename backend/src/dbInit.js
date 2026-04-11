@@ -2,8 +2,14 @@ const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
-const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:Silungwe%402025@localhost:5432/ETALDB';
-const pool = new Pool({ connectionString });
+const connectionString = process.env.DATABASE_URL;
+const pool = new Pool({
+  connectionString,
+  max: 1, // Important for Lambda
+  min: 0,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
+});
 
 async function initDb() {
   // Create tables if not exists

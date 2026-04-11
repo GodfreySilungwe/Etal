@@ -6,10 +6,11 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      '/uploads': {
-        target: 'http://localhost:4000',
-        changeOrigin: true
-      }
+      // Remove uploads proxy since files will be served from S3
+      // '/uploads': {
+      //   target: 'http://localhost:4000',
+      //   changeOrigin: true
+      // }
     }
   }
 })
