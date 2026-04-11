@@ -213,6 +213,30 @@ export default function App() {
     axios.post('http://localhost:4000/api/newsletter', { email }).then(() => alert('Subscribed')).catch(() => alert('Failed'))
   }
 
+  const playCartSound = (() => {
+    let audioCtx = null
+    return () => {
+      if (typeof window === 'undefined') return
+      const AudioContext = window.AudioContext || window.webkitAudioContext
+      if (!AudioContext) return
+
+      if (!audioCtx) {
+        audioCtx = new AudioContext()
+      }
+
+      const osc = audioCtx.createOscillator()
+      const gain = audioCtx.createGain()
+      osc.type = 'triangle'
+      osc.frequency.value = 560
+      gain.gain.value = 0.16
+      osc.connect(gain)
+      gain.connect(audioCtx.destination)
+      osc.start()
+      osc.stop(audioCtx.currentTime + 0.12)
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12)
+    }
+  })()
+
   function addToCart(product){
     const existingIndex = cart.findIndex(item => item.id === product.id)
     let next
@@ -231,7 +255,7 @@ export default function App() {
     
     setCart(next)
     localStorage.setItem('etal_cart', JSON.stringify(next))
-    alert('Added to cart')
+    playCartSound()
   }
 
   function animateAddToCart({ sourceEl, imageUrl } = {}) {

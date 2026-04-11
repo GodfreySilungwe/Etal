@@ -99,6 +99,12 @@ function ProductsAdmin({ presenter, token }) {
     })
   }
 
+  const calculateDiscountPercent = (originalPrice, price) => {
+    if (originalPrice == null || price == null || originalPrice <= 0 || price >= originalPrice) return 0
+    const percent = ((originalPrice - price) / originalPrice) * 100
+    return Math.round(percent)
+  }
+
   async function submit(e) {
     e.preventDefault()
 
@@ -110,10 +116,10 @@ function ProductsAdmin({ presenter, token }) {
 
     const price = toNumberOrNull(form.price)
     const originalPrice = toNumberOrNull(form.original_price)
-    const discountPercent = toNumberOrNull(form.discount_percent)
     const stock = toNumberOrNull(form.stock)
     const installationPrice = toNumberOrNull(form.installation_price)
     const deliveryPrice = toNumberOrNull(form.delivery_price)
+    const discountPercent = calculateDiscountPercent(originalPrice, price)
 
     const errs = []
     if (!form.name.trim()) errs.push('Name is required')
@@ -209,9 +215,29 @@ function ProductsAdmin({ presenter, token }) {
               {Array.isArray(categories) ? categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>) : null}
             </select>
             <input placeholder="Description" value={form.description} onChange={(e)=>setForm({ ...form, description: e.target.value })} />
-            <input type="number" step="0.01" placeholder="Price" value={form.price} onChange={(e)=>setForm({ ...form, price: e.target.value })} />
-            <input type="number" step="0.01" placeholder="Original Price" value={form.original_price} onChange={(e)=>setForm({ ...form, original_price: e.target.value })} />
-            <input type="number" step="1" placeholder="Discount Percent" value={form.discount_percent} onChange={(e)=>setForm({ ...form, discount_percent: e.target.value })} />
+            <input type="number" step="0.01" placeholder="Price" value={form.price} onChange={(e)=>{
+              const nextPrice = e.target.value
+              setForm({
+                ...form,
+                price: nextPrice,
+                discount_percent: calculateDiscountPercent(
+                  form.original_price === '' ? null : Number(form.original_price),
+                  nextPrice === '' ? null : Number(nextPrice)
+                )
+              })
+            }} />
+            <input type="number" step="0.01" placeholder="Original Price" value={form.original_price} onChange={(e)=>{
+              const nextOriginalPrice = e.target.value
+              setForm({
+                ...form,
+                original_price: nextOriginalPrice,
+                discount_percent: calculateDiscountPercent(
+                  nextOriginalPrice === '' ? null : Number(nextOriginalPrice),
+                  form.price === '' ? null : Number(form.price)
+                )
+              })
+            }} />
+            <input type="number" step="1" placeholder="Discount Percent" value={form.discount_percent} readOnly />
             <input type="number" step="1" placeholder="Stock" value={form.stock} onChange={(e)=>setForm({ ...form, stock: e.target.value })} />
             <input type="number" step="0.01" placeholder="Installation Price" value={form.installation_price} onChange={(e)=>setForm({ ...form, installation_price: e.target.value })} />
             <input type="number" step="0.01" placeholder="Delivery Price" value={form.delivery_price} onChange={(e)=>setForm({ ...form, delivery_price: e.target.value })} />
