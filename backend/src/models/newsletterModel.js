@@ -1,13 +1,25 @@
-const { pool } = require('../dbInit');
+const { docClient, tables } = require('../dbInit');
 
 async function create(email) {
-  const res = await pool.query('INSERT INTO newsletter_subscribers(email) VALUES($1) ON CONFLICT DO NOTHING RETURNING *', [email]);
-  return res.rows[0];
+  const item = { email, subscribed_at: new Date().toISOString() };
+  try {
+    await docClient.put({
+      TableName: tables.newsletter,
+      Item: item,
+      ConditionExpression: 'attribute_not_exists(email)',
+    }).promise();
+  } catch (err) {
+    if (err.code === 'ConditionalCheckFailedException') {
+      return item;
+    }
+    throw err;
+  }
+  return item;
 }
 
 async function list() {
-  const res = await pool.query('SELECT * FROM newsletter_subscribers ORDER BY subscribed_at DESC');
-  return res.rows;
+  const res = await docClient.scan({ TableName: tables.newsletter }).promise();
+  return (res.Items || []).sort((a, b) => (b.subscribed_at || '').localeCompare(a.subscribed_at || ''));
 }
 
-module.exports = { create, list };
+module.exports = { create, list }; 

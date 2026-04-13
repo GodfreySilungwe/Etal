@@ -1,17 +1,22 @@
-const { pool } = require('../dbInit');
+const { docClient, tables } = require('../dbInit');
+const { randomUUID } = require('crypto');
 
 async function getAll() {
-  const res = await pool.query('SELECT * FROM categories ORDER BY name');
-  return res.rows;
+  const res = await docClient.scan({ TableName: tables.categories }).promise();
+  return (res.Items || []).sort((a, b) => {
+    if (!a.name || !b.name) return 0;
+    return a.name.localeCompare(b.name);
+  });
 }
 
 async function create(name) {
-  const res = await pool.query('INSERT INTO categories(name) VALUES($1) RETURNING *', [name]);
-  return res.rows[0];
+  const item = { id: randomUUID(), name };
+  await docClient.put({ TableName: tables.categories, Item: item }).promise();
+  return item;
 }
 
 async function remove(id) {
-  await pool.query('DELETE FROM categories WHERE id=$1', [id]);
+  await docClient.delete({ TableName: tables.categories, Key: { id } }).promise();
 }
 
 module.exports = { getAll, create, remove };

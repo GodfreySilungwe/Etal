@@ -1,49 +1,38 @@
-const { pool } = require('../dbInit');
-
-async function ensureTable() {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS installation_requests (
-      id SERIAL PRIMARY KEY,
-      customer_location TEXT NOT NULL,
-      preferred_date DATE NOT NULL,
-      product TEXT NOT NULL,
-      product_id INTEGER,
-      product_price NUMERIC,
-      status TEXT NOT NULL DEFAULT 'pending',
-      requested_at TIMESTAMP DEFAULT now()
-    )
-  `);
-
-  await pool.query(`ALTER TABLE installation_requests ADD COLUMN IF NOT EXISTS product TEXT`);
-  await pool.query(`ALTER TABLE installation_requests ADD COLUMN IF NOT EXISTS product_id INTEGER`);
-  await pool.query(`ALTER TABLE installation_requests ADD COLUMN IF NOT EXISTS product_price NUMERIC`);
-  await pool.query(`ALTER TABLE installation_requests ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'pending'`);
-  await pool.query(`ALTER TABLE installation_requests ADD COLUMN IF NOT EXISTS requested_at TIMESTAMP DEFAULT now()`);
-}
+const { docClient, tables } = require('../dbInit');
+const { randomUUID } = require('crypto');
 
 async function create(data) {
-  await ensureTable();
-  const { customer_location, preferred_date, product, product_id, product_price } = data;
-  const res = await pool.query(
-    'INSERT INTO installation_requests(customer_location, preferred_date, product, product_id, product_price) VALUES($1,$2,$3,$4,$5) RETURNING *',
-    [customer_location, preferred_date, product, product_id || null, product_price || null]
-  );
-  return res.rows[0];
+  const item = {
+    id: randomUUID(),
+    customer_location: data.customer_location,
+    preferred_date: data.preferred_date,
+    product: data.product,
+    product_id: data.product_id || null,
+    product_price: data.product_price != null ? data.product_price : null,
+    status: 'pending',
+    requested_at: new Date().toISOString(),
+  };
+
+  await docClient.put({ TableName: tables.installationRequests, Item: item }).promise();
+  return item;
 }
 
 async function list() {
-  await ensureTable();
-  const res = await pool.query('SELECT * FROM installation_requests ORDER BY requested_at DESC');
-  return res.rows;
+  const res = await docClient.scan({ TableName: tables.installationRequests }).promise();
+  return (res.Items || []).sort((a, b) => (b.requested_at || '').localeCompare(a.requested_at || ''));
 }
 
 async function updateStatus(id, status) {
-  await ensureTable();
-  const res = await pool.query(
-    'UPDATE installation_requests SET status=$1 WHERE id=$2 RETURNING *',
-    [status, id]
-  );
-  return res.rows[0];
+  const params = {
+    TableName: tables.installationRequests,
+    Key: { id },
+    UpdateExpression: 'SET #status = :status',
+    ExpressionAttributeNames: { '#status': 'status' },
+    ExpressionAttributeValues: { ':status': status },
+    ReturnValues: 'ALL_NEW',
+  };
+  const res = await docClient.update(params).promise();
+  return res.Attributes;
 }
 
-module.exports = { create, list, updateStatus };
+module.exports = { create, list, updateStatus }; 

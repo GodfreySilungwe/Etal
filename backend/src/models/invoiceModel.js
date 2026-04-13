@@ -1,32 +1,35 @@
-const { pool } = require('../dbInit');
+const { docClient, tables } = require('../dbInit');
+const { randomUUID } = require('crypto');
+const productModel = require('./productModel');
 
 async function create(data) {
   const { customer_name, phone, email, product_details } = data;
   const details = typeof product_details === 'string' ? JSON.parse(product_details || '[]') : (product_details || []);
-  const text = JSON.stringify(details);
 
-  const res = await pool.query(
-    'INSERT INTO invoice_requests(customer_name, phone, email, product_details) VALUES($1,$2,$3,$4) RETURNING *',
-    [customer_name, phone, email || null, text]
-  );
+  const item = {
+    id: randomUUID(),
+    customer_name,
+    phone,
+    email: email || null,
+    product_details: details,
+    requested_at: new Date().toISOString(),
+  };
 
-  // Decrement inventory stock based on sold products (1 unit per item)
+  await docClient.put({ TableName: tables.invoiceRequests, Item: item }).promise();
+
   if (Array.isArray(details)) {
-    for (const item of details) {
-      if (!item || !item.id) continue;
-      await pool.query(
-        'UPDATE products SET stock = GREATEST(COALESCE(stock, 0) - 1, 0) WHERE id=$1',
-        [item.id]
-      );
+    for (const product of details) {
+      if (!product || !product.id) continue;
+      await productModel.adjustStock(product.id, -1);
     }
   }
 
-  return res.rows[0];
+  return item;
 }
 
 async function list() {
-  const res = await pool.query('SELECT * FROM invoice_requests ORDER BY requested_at DESC');
-  return res.rows;
+  const res = await docClient.scan({ TableName: tables.invoiceRequests }).promise();
+  return (res.Items || []).sort((a, b) => (b.requested_at || '').localeCompare(a.requested_at || ''));
 }
 
-module.exports = { create, list };
+module.exports = { create, list }; 

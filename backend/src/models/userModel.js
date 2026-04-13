@@ -1,8 +1,11 @@
-const { pool } = require('../dbInit');
+const { docClient, tables } = require('../dbInit');
 
 async function findByUsername(username) {
-  const res = await pool.query('SELECT * FROM users WHERE username=$1 LIMIT 1', [username]);
-  return res.rows[0];
+  const res = await docClient.get({
+    TableName: tables.users,
+    Key: { username },
+  }).promise();
+  return res.Item;
 }
 
 module.exports = { findByUsername };

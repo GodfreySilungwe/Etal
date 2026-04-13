@@ -1,17 +1,24 @@
-const { pool } = require('../dbInit');
+const { docClient, tables } = require('../dbInit');
+const { randomUUID } = require('crypto');
 
 async function create(data) {
-  const { delivery_address, phone, order_details, product_id, product_price } = data;
-  const res = await pool.query(
-    'INSERT INTO delivery_requests(delivery_address, phone, order_details, product_id, product_price) VALUES($1,$2,$3,$4,$5) RETURNING *',
-    [delivery_address, phone, order_details, product_id || null, product_price || null]
-  );
-  return res.rows[0];
+  const item = {
+    id: randomUUID(),
+    delivery_address: data.delivery_address,
+    phone: data.phone,
+    order_details: data.order_details,
+    product_id: data.product_id || null,
+    product_price: data.product_price != null ? data.product_price : null,
+    requested_at: new Date().toISOString(),
+  };
+
+  await docClient.put({ TableName: tables.deliveryRequests, Item: item }).promise();
+  return item;
 }
 
 async function list() {
-  const res = await pool.query('SELECT * FROM delivery_requests ORDER BY requested_at DESC');
-  return res.rows;
+  const res = await docClient.scan({ TableName: tables.deliveryRequests }).promise();
+  return (res.Items || []).sort((a, b) => (b.requested_at || '').localeCompare(a.requested_at || ''));
 }
 
-module.exports = { create, list };
+module.exports = { create, list }; 

@@ -1,18 +1,24 @@
-const { pool } = require('../dbInit');
+const { docClient, tables } = require('../dbInit');
+const { randomUUID } = require('crypto');
 
 async function list() {
-  const res = await pool.query('SELECT * FROM testimonials ORDER BY created_at DESC');
-  return res.rows;
+  const res = await docClient.scan({ TableName: tables.testimonials }).promise();
+  return (res.Items || []).sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
 }
 
 async function create(data) {
-  const { author, content } = data;
-  const res = await pool.query('INSERT INTO testimonials(author, content) VALUES($1,$2) RETURNING *', [author || null, content]);
-  return res.rows[0];
+  const item = {
+    id: randomUUID(),
+    author: data.author || null,
+    content: data.content,
+    created_at: new Date().toISOString(),
+  };
+  await docClient.put({ TableName: tables.testimonials, Item: item }).promise();
+  return item;
 }
 
 async function remove(id) {
-  await pool.query('DELETE FROM testimonials WHERE id=$1', [id]);
+  await docClient.delete({ TableName: tables.testimonials, Key: { id } }).promise();
 }
 
-module.exports = { list, create, remove };
+module.exports = { list, create, remove }; 
