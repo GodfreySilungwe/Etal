@@ -1,4 +1,4 @@
-const { docClient, tables } = require('../dbInit');
+const { docClient, APP_TABLE } = require('../dbInit');
 const { randomUUID } = require('crypto');
 const productModel = require('./productModel');
 
@@ -6,16 +6,23 @@ async function create(data) {
   const { customer_name, phone, email, product_details } = data;
   const details = typeof product_details === 'string' ? JSON.parse(product_details || '[]') : (product_details || []);
 
+  const id = randomUUID();
+  const createdAt = new Date().toISOString();
   const item = {
-    id: randomUUID(),
+    PK: `INVOICE#${id}`,
+    SK: 'MAIN',
+    GSI1PK: 'INVOICE',
+    GSI1SK: createdAt,
+    id,
+    type: 'INVOICE',
     customer_name,
     phone,
     email: email || null,
     product_details: details,
-    requested_at: new Date().toISOString(),
+    requested_at: createdAt,
   };
 
-  await docClient.put({ TableName: tables.invoiceRequests, Item: item }).promise();
+  await docClient.put({ TableName: APP_TABLE, Item: item }).promise();
 
   if (Array.isArray(details)) {
     for (const product of details) {
@@ -28,8 +35,14 @@ async function create(data) {
 }
 
 async function list() {
-  const res = await docClient.scan({ TableName: tables.invoiceRequests }).promise();
-  return (res.Items || []).sort((a, b) => (b.requested_at || '').localeCompare(a.requested_at || ''));
+  const res = await docClient.query({
+    TableName: APP_TABLE,
+    IndexName: 'GSI1',
+    KeyConditionExpression: 'GSI1PK = :type',
+    ExpressionAttributeValues: { ':type': 'INVOICE' },
+    ScanIndexForward: false,
+  }).promise();
+  return res.Items || [];
 }
 
 module.exports = { create, list }; 

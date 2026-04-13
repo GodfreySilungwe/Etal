@@ -1,31 +1,44 @@
-const { docClient, tables } = require('../dbInit');
+const { docClient, APP_TABLE } = require('../dbInit');
 const { randomUUID } = require('crypto');
 
 async function create(data) {
+  const id = randomUUID();
+  const createdAt = new Date().toISOString();
   const item = {
-    id: randomUUID(),
+    PK: `INSTALLATION#${id}`,
+    SK: 'MAIN',
+    GSI1PK: 'INSTALLATION',
+    GSI1SK: createdAt,
+    id,
+    type: 'INSTALLATION',
     customer_location: data.customer_location,
     preferred_date: data.preferred_date,
     product: data.product,
     product_id: data.product_id || null,
     product_price: data.product_price != null ? data.product_price : null,
     status: 'pending',
-    requested_at: new Date().toISOString(),
+    createdAt,
   };
 
-  await docClient.put({ TableName: tables.installationRequests, Item: item }).promise();
+  await docClient.put({ TableName: APP_TABLE, Item: item }).promise();
   return item;
 }
 
 async function list() {
-  const res = await docClient.scan({ TableName: tables.installationRequests }).promise();
-  return (res.Items || []).sort((a, b) => (b.requested_at || '').localeCompare(a.requested_at || ''));
+  const res = await docClient.query({
+    TableName: APP_TABLE,
+    IndexName: 'GSI1',
+    KeyConditionExpression: 'GSI1PK = :type',
+    ExpressionAttributeValues: { ':type': 'INSTALLATION' },
+    ScanIndexForward: false,
+  }).promise();
+  return res.Items || [];
 }
 
 async function updateStatus(id, status) {
   const params = {
-    TableName: tables.installationRequests,
-    Key: { id },
+    TableName: APP_TABLE,
+    Key: { PK: `INSTALLATION#${id}`, SK: 'MAIN' },
     UpdateExpression: 'SET #status = :status',
     ExpressionAttributeNames: { '#status': 'status' },
     ExpressionAttributeValues: { ':status': status },

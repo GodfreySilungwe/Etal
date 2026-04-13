@@ -1,4 +1,4 @@
-const { docClient, tables } = require('../dbInit');
+const { docClient, APP_TABLE } = require('../dbInit');
 const { randomUUID } = require('crypto');
 
 async function create(data) {
@@ -30,30 +30,43 @@ async function create(data) {
       })
     : [];
 
+  const id = randomUUID();
+  const createdAt = new Date().toISOString();
   const item = {
-    id: randomUUID(),
+    PK: `QUOTE#${id}`,
+    SK: 'MAIN',
+    GSI1PK: 'QUOTE',
+    GSI1SK: createdAt,
+    id,
+    type: 'QUOTE',
     customer_name,
     phone,
     email: email || null,
     details: details || null,
     product_details: normalizedItems,
     status: 'pending',
-    requested_at: new Date().toISOString(),
+    requested_at: createdAt,
   };
 
-  await docClient.put({ TableName: tables.quoteRequests, Item: item }).promise();
+  await docClient.put({ TableName: APP_TABLE, Item: item }).promise();
   return item;
 }
 
 async function list() {
-  const res = await docClient.scan({ TableName: tables.quoteRequests }).promise();
-  return (res.Items || []).sort((a, b) => (b.requested_at || '').localeCompare(a.requested_at || ''));
+  const res = await docClient.query({
+    TableName: APP_TABLE,
+    IndexName: 'GSI1',
+    KeyConditionExpression: 'GSI1PK = :type',
+    ExpressionAttributeValues: { ':type': 'QUOTE' },
+    ScanIndexForward: false,
+  }).promise();
+  return res.Items || [];
 }
 
 async function updateStatus(id, status) {
   const params = {
-    TableName: tables.quoteRequests,
-    Key: { id },
+    TableName: APP_TABLE,
+    Key: { PK: `QUOTE#${id}`, SK: 'MAIN' },
     UpdateExpression: 'SET #status = :status, #processed_at = :processed_at',
     ExpressionAttributeNames: {
       '#status': 'status',

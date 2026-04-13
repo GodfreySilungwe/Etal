@@ -1,4 +1,4 @@
-const { docClient, tables } = require('../dbInit');
+const { docClient, APP_TABLE } = require('../dbInit');
 const { randomUUID } = require('crypto');
 const productModel = require('./productModel');
 
@@ -46,18 +46,25 @@ async function create(data) {
       })
     : [];
 
+  const id = randomUUID();
+  const createdAt = new Date().toISOString();
   const item = {
-    id: randomUUID(),
+    PK: `PAYMENT#${id}`,
+    SK: 'MAIN',
+    GSI1PK: 'PAYMENT',
+    GSI1SK: createdAt,
+    id,
+    type: 'PAYMENT',
     customer_name,
     phone,
     method_used,
     transaction_reference,
     product_details: normalizedDetails,
     service_status: 'pending',
-    submitted_at: new Date().toISOString(),
+    submitted_at: createdAt,
   };
 
-  await docClient.put({ TableName: tables.paymentReferences, Item: item }).promise();
+  await docClient.put({ TableName: APP_TABLE, Item: item }).promise();
 
   if (Array.isArray(normalizedDetails)) {
     for (const entry of normalizedDetails) {
@@ -71,14 +78,20 @@ async function create(data) {
 }
 
 async function list() {
-  const res = await docClient.scan({ TableName: tables.paymentReferences }).promise();
-  return (res.Items || []).sort((a, b) => (b.submitted_at || '').localeCompare(a.submitted_at || ''));
+  const res = await docClient.query({
+    TableName: APP_TABLE,
+    IndexName: 'GSI1',
+    KeyConditionExpression: 'GSI1PK = :type',
+    ExpressionAttributeValues: { ':type': 'PAYMENT' },
+    ScanIndexForward: false,
+  }).promise();
+  return res.Items || [];
 }
 
 async function updateStatus(id, service_status) {
   const params = {
-    TableName: tables.paymentReferences,
-    Key: { id },
+    TableName: APP_TABLE,
+    Key: { PK: `PAYMENT#${id}`, SK: 'MAIN' },
     UpdateExpression: 'SET #status = :status, #processed_at = :processed_at',
     ExpressionAttributeNames: {
       '#status': 'service_status',

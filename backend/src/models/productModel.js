@@ -1,4 +1,4 @@
-const { docClient, tables } = require('../dbInit');
+const { docClient, APP_TABLE } = require('../dbInit');
 const categoryModel = require('./categoryModel');
 const { randomUUID } = require('crypto');
 
@@ -23,11 +23,14 @@ function normalizeProductItem(item, categoryMap = {}) {
 
 async function getAll(filters = {}) {
   const params = {
-    TableName: tables.products,
+    TableName: APP_TABLE,
+    IndexName: 'GSI1',
+    KeyConditionExpression: 'GSI1PK = :type',
+    ExpressionAttributeValues: { ':type': 'PRODUCT' },
   };
 
   const exprNames = {};
-  const exprValues = {};
+  const exprValues = { ':type': 'PRODUCT' };
   const conditions = [];
 
   if (filters.search) {
@@ -49,7 +52,7 @@ async function getAll(filters = {}) {
     params.ExpressionAttributeValues = exprValues;
   }
 
-  const res = await docClient.scan(params).promise();
+  const res = await docClient.query(params).promise();
   const categories = await categoryModel.getAll();
   const categoryMap = categories.reduce((map, category) => ({ ...map, [category.id]: category.name }), {});
   const items = (res.Items || []).map((item) => normalizeProductItem(item, categoryMap));
@@ -61,8 +64,8 @@ async function getAll(filters = {}) {
 
 async function getById(id) {
   const res = await docClient.get({
-    TableName: tables.products,
-    Key: { id },
+    TableName: APP_TABLE,
+    Key: { PK: `PRODUCT#${id}`, SK: 'MAIN' },
   }).promise();
 
   if (!res.Item) return null;
@@ -74,7 +77,12 @@ async function getById(id) {
 async function create(product) {
   const id = randomUUID();
   const item = {
+    PK: `PRODUCT#${id}`,
+    SK: 'MAIN',
+    GSI1PK: 'PRODUCT',
+    GSI1SK: product.name || 'Unknown',
     id,
+    type: 'PRODUCT',
     name: product.name,
     category_id: product.category_id || null,
     description: product.description || null,
@@ -89,7 +97,7 @@ async function create(product) {
     createdAt: new Date().toISOString(),
   };
 
-  await docClient.put({ TableName: tables.products, Item: item }).promise();
+  await docClient.put({ TableName: APP_TABLE, Item: item }).promise();
   const result = await getById(id);
   return result;
 }
@@ -111,6 +119,7 @@ async function update(id, product) {
     '#delivery_price': { key: 'delivery_price', value: product.delivery_price != null ? product.delivery_price : null },
     '#specs': { key: 'specs', value: product.specs || null },
     '#image_url': { key: 'image_url', value: product.image_url || null },
+    '#gsi1sk': { key: 'GSI1SK', value: product.name || 'Unknown' },
   };
 
   let valueIndex = 1;
@@ -122,8 +131,8 @@ async function update(id, product) {
   }
 
   const params = {
-    TableName: tables.products,
-    Key: { id },
+    TableName: APP_TABLE,
+    Key: { PK: `PRODUCT#${id}`, SK: 'MAIN' },
     UpdateExpression: `SET ${updateExpressions.join(', ')}`,
     ExpressionAttributeNames: exprNames,
     ExpressionAttributeValues: exprValues,
@@ -138,18 +147,18 @@ async function update(id, product) {
 
 async function remove(id) {
   await docClient.delete({
-    TableName: tables.products,
-    Key: { id },
+    TableName: APP_TABLE,
+    Key: { PK: `PRODUCT#${id}`, SK: 'MAIN' },
   }).promise();
 }
 
 async function adjustStock(id, delta) {
-  const product = await docClient.get({ TableName: tables.products, Key: { id } }).promise();
+  const product = await docClient.get({ TableName: APP_TABLE, Key: { PK: `PRODUCT#${id}`, SK: 'MAIN' } }).promise();
   if (!product.Item) return null;
   const stock = Math.max((Number(product.Item.stock) || 0) + delta, 0);
   const res = await docClient.update({
-    TableName: tables.products,
-    Key: { id },
+    TableName: APP_TABLE,
+    Key: { PK: `PRODUCT#${id}`, SK: 'MAIN' },
     UpdateExpression: 'SET #stock = :stock',
     ExpressionAttributeNames: { '#stock': 'stock' },
     ExpressionAttributeValues: { ':stock': stock },

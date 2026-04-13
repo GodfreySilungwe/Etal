@@ -1,9 +1,9 @@
-const { docClient, tables } = require('../dbInit');
+const { docClient, APP_TABLE } = require('../dbInit');
 
 async function findByUsername(username) {
   const res = await docClient.get({
-    TableName: tables.users,
-    Key: { username },
+    TableName: APP_TABLE,
+    Key: { PK: `USER#${username}`, SK: 'MAIN' },
   }).promise();
   return res.Item;
 }
