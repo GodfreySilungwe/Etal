@@ -21,6 +21,10 @@ const fmtMK = (val) => {
   return `MK ${n.toFixed(2)}`
 }
 
+const API_BASE_URL = 'https://xw9zhawaqf.execute-api.us-east-1.amazonaws.com'
+
+const LOGO_URL = 'https://etalbackendbusketfileuploads.s3.amazonaws.com/uploads/Log.png'
+
 function decodeJWT(token) {
   try {
     const payload = token.split('.')[1]
@@ -32,31 +36,11 @@ function decodeJWT(token) {
 }
 
 function Nav({ setView, cartCount, userRole, token, presenter }) {
-  const [email, setEmail] = useState('')
-  const [subscribeStatus, setSubscribeStatus] = useState('')
-
-  async function subscribe(){
-    if(!email || !email.includes('@')) {
-      setSubscribeStatus('invalid')
-      setTimeout(() => setSubscribeStatus(''), 3000)
-      return
-    }
-    try{
-      await presenter.subscribeNewsletter(email)
-      setSubscribeStatus('success')
-      setEmail('')
-      setTimeout(() => setSubscribeStatus(''), 3000)
-    }catch(e){
-      setSubscribeStatus('error')
-      setTimeout(() => setSubscribeStatus(''), 3000)
-    }
-  }
-
   return (
     <nav className="nav">
       <div className="nav-group" style={{ alignItems: 'center' }}>
         <img
-          src="/uploads/Log.png"
+          src={LOGO_URL}
           alt="ETAL Logo"
           style={{ height: '40px', marginRight: '20px', cursor: 'pointer' }}
           onClick={() => { console.log('Nav: logo -> home'); setView('home') }}
@@ -65,25 +49,6 @@ function Nav({ setView, cartCount, userRole, token, presenter }) {
         <button onClick={() => { console.log('Nav: products'); setView('products') }}>Products</button>
         <button onClick={() => { console.log('Nav: services'); setView('services') }}>Services & Installations</button>
         <button onClick={() => { console.log('Nav: about'); setView('about') }}>About Us</button>
-
-        {/* Newsletter Subscribe */}
-        <div className="nav-subscribe">
-          <input
-            type="email"
-            placeholder="Enter your email address"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="nav-subscribe-input"
-          />
-          <button onClick={subscribe} className="nav-subscribe-btn">Subscribe</button>
-          {subscribeStatus && (
-            <span className={`nav-subscribe-status status-${subscribeStatus}`}>
-              {subscribeStatus === 'success' ? 'Subscribed!' :
-               subscribeStatus === 'invalid' ? 'Invalid email' :
-               subscribeStatus === 'error' ? 'Failed to subscribe' : ''}
-            </span>
-          )}
-        </div>
 
         {!token && <button onClick={() => { console.log('Nav: login'); setView('admin') }}>Login</button>}
         {userRole === 'admin' && <button onClick={() => { console.log('Nav: admin'); setView('admin') }}>Admin</button>}
@@ -137,9 +102,10 @@ function Nav({ setView, cartCount, userRole, token, presenter }) {
 
       {loading ? (
         <p>Loading products...</p>
-      ) : (
-        categories.map(cat => (
-          productsByCategory[cat.id] && productsByCategory[cat.id].length > 0 && (
+      ) : (() => {
+        const categoryCards = categories
+          .filter(cat => productsByCategory[cat.id] && productsByCategory[cat.id].length > 0)
+          .map(cat => (
             <div key={cat.id} style={{ marginBottom: '40px' }}>
               <h2 className="home-category-title">{cat.name}</h2>
               <div className="grid">
@@ -153,9 +119,28 @@ function Nav({ setView, cartCount, userRole, token, presenter }) {
                 ))}
               </div>
             </div>
-          )
-        ))
-      )}
+          ))
+
+        if (categoryCards.length > 0) {
+          return categoryCards
+        }
+
+        return (
+          <div style={{ marginBottom: '40px' }}>
+            <h2 className="home-category-title">All Products</h2>
+            <div className="grid">
+              {products.map(p => (
+                <ProductCard
+                  key={p.id}
+                  product={p}
+                  onSelect={onSelect}
+                  onAddToCart={onAddToCart}
+                />
+              ))}
+            </div>
+          </div>
+        )
+      })()}
 
     </div>
   )
@@ -236,11 +221,6 @@ export default function App() {
       setUserRole(null)
     }
   }, [token])
-
-  function onSubscribe(email) {
-    if (!email || !email.includes('@')) return alert('Invalid email')
-    axios.post('http://localhost:4000/api/newsletter', { email }).then(() => alert('Subscribed')).catch(() => alert('Failed'))
-  }
 
   const playCartSound = (() => {
     let audioCtx = null

@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://xw9zhawaqf.execute-api.us-east-1.amazonaws.com';
+const API_BASE_URL = 'https://xw9zhawaqf.execute-api.us-east-1.amazonaws.com';
 
 export default class ProductPresenter {
   async getCategories() {

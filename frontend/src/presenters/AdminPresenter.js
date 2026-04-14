@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_BASE_URL = 'https://xw9zhawaqf.execute-api.us-east-1.amazonaws.com';
+const API_BASE_URL =  'https://xw9zhawaqf.execute-api.us-east-1.amazonaws.com';
 
 export default class AdminPresenter {
   authConfig() {
@@ -42,7 +42,7 @@ export default class AdminPresenter {
     const res = await axios.post(
       `${API_BASE_URL}/api/upload`,
       fd,
-      { headers: { 'Content-Type': 'multipart/form-data', ...(this.authConfig().headers || {}) } }
+      { headers: { ...(this.authConfig().headers || {}) } }
     )
     return res.data
   }

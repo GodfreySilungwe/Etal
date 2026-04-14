@@ -54,15 +54,8 @@ function ProductsAdmin({ presenter, token }) {
 
   async function uploadImage(file) {
     if (!file) return
-    const formData = new FormData()
-    formData.append('image', file)
-    const res = await axios.post('http://localhost:4000/api/upload', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-        Authorization: `Bearer ${effectiveToken}`
-      }
-    })
-    return res.data.url
+    const res = await presenter.uploadImage(file)
+    return res.url
   }
 
   async function load() {
@@ -145,7 +138,7 @@ function ProductsAdmin({ presenter, token }) {
     try {
       const payload = {
         name: form.name.trim(),
-        category_id: form.category_id ? Number(form.category_id) : null,
+        category_id: form.category_id || null,
         description: form.description || null,
         price,
         original_price: originalPrice,
