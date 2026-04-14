@@ -4,15 +4,14 @@ const { randomUUID } = require('crypto');
 require('dotenv').config();
 
 AWS.config.update({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+
   region: process.env.AWS_REGION || 'us-east-1',
 });
 
 const dynamo = new AWS.DynamoDB();
 const docClient = new AWS.DynamoDB.DocumentClient();
 
-const APP_TABLE = process.env.APP_TABLE || 'EtalApp';
+const APP_TABLE = 'ETALDYNAMODB123';
 
 /**
  * Single-table design for DynamoDB
