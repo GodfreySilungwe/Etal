@@ -23,7 +23,7 @@ const fmtMK = (val) => {
 
 const API_BASE_URL = 'https://xw9zhawaqf.execute-api.us-east-1.amazonaws.com'
 
-const LOGO_URL = 'https://etalbackendbusketfileuploads.s3.amazonaws.com/uploads/Log.png'
+const LOGO_URL = 'https://etalbackendbusketfileuploads.s3.us-east-1.amazonaws.com/uploads/Log.png'
 
 function decodeJWT(token) {
   try {
