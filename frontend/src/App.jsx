@@ -42,16 +42,17 @@ function Nav({ setView, cartCount, userRole, token, presenter }) {
         <img
           src={LOGO_URL}
           alt="ETAL Logo"
+          className="desktop-only"
           style={{ height: '40px', marginRight: '20px', cursor: 'pointer' }}
           onClick={() => { console.log('Nav: logo -> home'); setView('home') }}
         />
         <button onClick={() => { console.log('Nav: home'); setView('home') }}>Home</button>
         <button onClick={() => { console.log('Nav: products'); setView('products') }}>Products</button>
-        <button onClick={() => { console.log('Nav: services'); setView('services') }}>Services & Installations</button>
-        <button onClick={() => { console.log('Nav: about'); setView('about') }}>About Us</button>
+        <button onClick={() => { console.log('Nav: services'); setView('services') }}>Services</button>
+        <button className="desktop-only" onClick={() => { console.log('Nav: about'); setView('about') }}>About Us</button>
 
-        {!token && <button onClick={() => { console.log('Nav: login'); setView('admin') }}>Login</button>}
-        {userRole === 'admin' && <button onClick={() => { console.log('Nav: admin'); setView('admin') }}>Admin</button>}
+        {!token && <button className="desktop-only" onClick={() => { console.log('Nav: login'); setView('admin') }}>Login</button>}
+        {userRole === 'admin' && <button className="desktop-only" onClick={() => { console.log('Nav: admin'); setView('admin') }}>Admin</button>}
       </div>
 
       <div className="nav-group" style={{ justifyContent: 'flex-end', alignItems: 'center' }}>

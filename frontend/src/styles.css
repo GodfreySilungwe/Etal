@@ -395,22 +395,35 @@ form { background:transparent }
 @media (max-width: 768px) {
   /* Navigation */
   .nav {
-    padding: 10px 12px;
-    flex-wrap: wrap;
-    gap: 8px;
+    padding: 6px 8px;
+    flex-wrap: nowrap;
+    gap: 4px;
+    overflow-x: auto;
+  }
+  
+  .nav img {
+    height: 24px;
+    max-width: 60px;
   }
   
   .nav .nav-group {
-    gap: 8px;
+    gap: 4px;
   }
   
   .nav button {
-    padding: 8px 12px;
-    font-size: 0.8rem;
+    padding: 6px 8px;
+    font-size: 0.65rem;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
   
   /* Hide subscribe on mobile - too wide */
   .nav-subscribe {
+    display: none;
+  }
+  
+  /* Hide desktop-only elements on mobile */
+  .desktop-only {
     display: none;
   }
   
@@ -422,7 +435,7 @@ form { background:transparent }
   
   /* Grid system for mobile */
   .grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: 1fr;
     gap: 10px;
   }
   
@@ -464,7 +477,7 @@ form { background:transparent }
 @media (max-width: 480px) {
   /* Extra small screens */
   .grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: 1fr;
     gap: 8px;
   }
   
@@ -496,11 +509,6 @@ form { background:transparent }
     animation-delay: 0s !important;
     transition-duration: 0.2s !important;
     transition-delay: 0s !important;
-  }
-  
-  /* Hide logo on mobile to save space */
-  .nav img {
-    display: none;
   }
   
   /* Optimize card hover effects */
