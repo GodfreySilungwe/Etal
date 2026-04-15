@@ -64,10 +64,6 @@ export default function Services({ presenter, setView, onRequestInstallation }) 
       <div style={{ marginTop: '40px' }}>
         <h2>Request a Service</h2>
         <p>Use service cards above or request delivery below.</p>
-        <div style={{ display: 'flex', gap: '20px' }}>
-          <button onClick={() => setView('installation')}>Installation Request</button>
-          <button onClick={() => setView('delivery')}>Delivery Request</button>
-        </div>
       </div>
     </div>
   )
