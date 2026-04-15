@@ -7,7 +7,7 @@
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
     "build": "npm install && npm run build-lambda && npm prune --omit=dev",
-    "build-lambda": "esbuild lambda.js --bundle --platform=node --target=node18 --outfile=dist/lambda.js --external:aws-sdk"
+    "build-lambda": "esbuild src/lambda.js --bundle --platform=node --target=node18 --outfile=dist/lambda.js --external:aws-sdk --keep-names --minify=false"
   },
   "dependencies": {
     "body-parser": "^1.20.1",

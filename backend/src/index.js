@@ -15,11 +15,12 @@ dotenv.config();
 const app = express();
 
 // Configure AWS SDK
+
 AWS.config.update({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  region: process.env.AWS_REGION || 'us-east-1'
-});
+
+    region: process.env.AWS_REGION || 'us-east-1'
+  });
+
 
 const s3 = new AWS.S3();
 
@@ -27,29 +28,46 @@ const s3 = new AWS.S3();
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-// Helper function to upload to S3
+// Helper function to upload to S3 or save locally
 const uploadToS3 = async (file, key) => {
-  const params = {
-    Bucket: process.env.S3_BUCKET_NAME,
-    Key: key,
-    Body: file.buffer,
-    ContentType: file.mimetype,
-    ACL: 'public-read'
-  };
-  return s3.upload(params).promise();
+
+    // Production: upload to S3
+    const params = {
+      Bucket: process.env.S3_BUCKET_NAME,
+      Key: key,
+      Body: file.buffer,
+      ContentType: file.mimetype,
+    };
+    return s3.upload(params).promise();
+  
 };
 
 // CORS configuration for CloudFront
 const corsOptions = {
-  origin: [
-    'http://localhost:5173', // For development
-    process.env.FRONTEND_URL, // CloudFront distribution URL
-  ].filter(Boolean), // Remove falsy values
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true)
+
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'http://localhost:4000',
+      'http://etalfrontendbusket.s3-website-us-east-1.amazonaws.com',
+      process.env.FRONTEND_URL,
+    ].filter(Boolean)
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true)
+    }
+
+    callback(new Error('Not allowed by CORS'))
+  },
   credentials: true,
 };
 
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
+
+// Serve static files from uploads folder
+// app.use('/uploads', express.static('uploads')); // Removed for Lambda, all uploads to S3
 
 const PORT = process.env.PORT || 4000;
 
@@ -78,7 +96,7 @@ app.post('/api/upload', authenticateToken, upload.single('image'), async (req, r
     const key = `uploads/${req.file.fieldname}-${unique}${ext}`;
 
     const result = await uploadToS3(req.file, key);
-    const url = `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/${key}`;
+    const url =  `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/${key}`;
 
     res.json({ url });
   } catch (error) {
@@ -121,14 +139,62 @@ app.delete('/api/categories/:id', authenticateToken, async (req, res) => {
 });
 
 // Initialize DB
-initDb()
-  .then(() => {
-    console.log('Database initialized successfully');
-  })
-  .catch((err) => {
-    console.error('Failed to initialize database', err);
-    process.exit(1);
+if (process.env.NODE_ENV !== 'development') {
+  initDb()
+    .then(() => {
+      console.log('Database initialized successfully');
+    })
+    .catch((err) => {
+      console.error('Failed to initialize database', err);
+      process.exit(1);
+    });
+} else {
+  console.log('Development mode: Skipping AWS database initialization');
+}
+
+// Start local development server if not in serverless environment
+if (require.main === module) {
+  const PORT = process.env.PORT || 4000;
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+// Export Express app for Lambda
+module.exports = app;
+
+// Development mode mock responses
+if (process.env.NODE_ENV === 'development') {
+  // Mock products endpoint
+  app.get('/api/products', (req, res) => {
+    res.json([
+      {
+        id: '1',
+        name: 'Sample Product',
+        category_id: '1',
+        description: 'This is a sample product for development',
+        price: 100,
+        image_url: 'http://localhost:4000/uploads/Log.png'
+      }
+    ]);
   });
 
-// Export for serverless deployment
-module.exports = app;
+  // Mock categories endpoint
+  app.get('/api/categories', (req, res) => {
+    res.json([
+      { id: '1', name: 'Electronics' }
+    ]);
+  });
+
+  // Mock admin login
+  app.post('/api/admin/login', (req, res) => {
+    const { username, password } = req.body;
+    if (username === 'admin' && password === 'adminpass') {
+      // Simple JWT mock
+      const token = 'dev-token-' + Date.now();
+      res.json({ token, user: { role: 'admin' } });
+    } else {
+      res.status(401).json({ error: 'Invalid credentials' });
+    }
+  });
+}

@@ -50,13 +50,8 @@ function ProductsAdmin({ presenter, token }) {
   const [categories, setCategories] = useState([])
   const [form, setForm] = useState(EMPTY_FORM)
   const [errors, setErrors] = useState([])
+  const [selectedFile, setSelectedFile] = useState(null)
   const effectiveToken = token || localStorage.getItem('etal_token') || ''
-
-  async function uploadImage(file) {
-    if (!file) return
-    const res = await presenter.uploadImage(file)
-    return res.url
-  }
 
   async function load() {
     try {
@@ -90,6 +85,7 @@ function ProductsAdmin({ presenter, token }) {
       specs: p.specs ? JSON.stringify(p.specs) : '',
       image_url: p.image_url || ''
     })
+    setSelectedFile(null)
   }
 
   const calculateDiscountPercent = (originalPrice, price) => {
@@ -136,28 +132,32 @@ function ProductsAdmin({ presenter, token }) {
     setErrors([])
 
     try {
-      const payload = {
-        name: form.name.trim(),
-        category_id: form.category_id || null,
-        description: form.description || null,
-        price,
-        original_price: originalPrice,
-        discount_percent: discountPercent ?? 0,
-        stock: stock ?? 0,
-        installation_price: installationPrice,
-        delivery_price: deliveryPrice,
-        specs: form.specs ? JSON.parse(form.specs) : null,
-        image_url: form.image_url || null
+      const formData = new FormData()
+      formData.append('name', form.name.trim())
+      formData.append('category_id', form.category_id || '')
+      formData.append('description', form.description || '')
+      formData.append('price', price != null ? price.toString() : '')
+      formData.append('original_price', originalPrice != null ? originalPrice.toString() : '')
+      formData.append('discount_percent', discountPercent.toString())
+      formData.append('stock', stock != null ? stock.toString() : '')
+      formData.append('installation_price', installationPrice != null ? installationPrice.toString() : '')
+      formData.append('delivery_price', deliveryPrice != null ? deliveryPrice.toString() : '')
+      formData.append('specs', form.specs || '')
+      if (selectedFile) {
+        formData.append('image', selectedFile)
+      } else if (form.image_url) {
+        formData.append('image_url', form.image_url)
       }
 
       if (editing) {
-        const updated = await presenter.updateProduct(editing, payload)
+        const updated = await presenter.updateProduct(editing, formData)
         if (!updated) throw new Error('Product was not updated')
       } else {
-        await presenter.createProduct(payload)
+        await presenter.createProduct(formData)
       }
       setEditing(null)
       setForm(EMPTY_FORM)
+      setSelectedFile(null)
       await load()
     } catch (err) {
       const msg = err?.response?.data?.error || err?.message || 'Save failed'
@@ -236,14 +236,20 @@ function ProductsAdmin({ presenter, token }) {
             <input type="number" step="0.01" placeholder="Delivery Price" value={form.delivery_price} onChange={(e)=>setForm({ ...form, delivery_price: e.target.value })} />
             <textarea placeholder='Specs JSON' value={form.specs} onChange={(e)=>setForm({ ...form, specs: e.target.value })} />
             <div>
-              <input type="file" accept="image/*" onChange={async (e) => {
-                const url = await uploadImage(e.target.files?.[0])
-                if (url) setForm((prev) => ({ ...prev, image_url: url }))
+              <input type="file" accept="image/*" onChange={(e) => {
+                const file = e.target.files?.[0]
+                setSelectedFile(file)
+                if (file) {
+                  const url = URL.createObjectURL(file)
+                  setForm((prev) => ({ ...prev, image_url: url })) // Preview
+                } else {
+                  setForm((prev) => ({ ...prev, image_url: '' }))
+                }
               }} />
               {form.image_url && <div className="thumb"><img src={form.image_url} alt="preview" /></div>}
             </div>
             <button type="submit">Save</button>
-            {editing && <button type="button" onClick={() => { setEditing(null); setForm(EMPTY_FORM); setErrors([]) }}>Cancel Edit</button>}
+            {editing && <button type="button" onClick={() => { setEditing(null); setForm(EMPTY_FORM); setErrors([]); setSelectedFile(null) }}>Cancel Edit</button>}
           </form>
         </div>
       </div>
