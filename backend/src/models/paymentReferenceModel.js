@@ -91,18 +91,23 @@ async function list() {
 }
 
 async function updateStatus(id, service_status) {
+  let UpdateExpression = 'SET #status = :status';
+  const ExpressionAttributeValues = { ':status': service_status };
+  
+  if (service_status === 'complete') {
+    UpdateExpression += ', #processed_at = :processed_at';
+    ExpressionAttributeValues[':processed_at'] = new Date().toISOString();
+  }
+
   const params = {
     TableName: APP_TABLE,
     Key: { PK: `PAYMENT#${id}`, SK: 'MAIN' },
-    UpdateExpression: 'SET #status = :status, #processed_at = :processed_at',
+    UpdateExpression,
     ExpressionAttributeNames: {
       '#status': 'service_status',
       '#processed_at': 'processed_at',
     },
-    ExpressionAttributeValues: {
-      ':status': service_status,
-      ':processed_at': service_status === 'complete' ? new Date().toISOString() : null,
-    },
+    ExpressionAttributeValues,
     ReturnValues: 'ALL_NEW',
   };
 

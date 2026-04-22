@@ -6,7 +6,7 @@ import { Line, Bar, Pie, Doughnut } from 'react-chartjs-2'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, ArcElement)
 
-const fmtMK = (val) => val == null || val === '' ? '' : `MK ${Number(val).toFixed(2)}`
+const fmtMK = (val) => val == null || val === '' ? '' : `MK ${Number(val).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 const EMPTY_FORM = {
   name: '',
   category_id: '',
@@ -729,10 +729,19 @@ function ServiceRequestsAdmin({ presenter }) {
 
   async function onPaymentStatusChange(id, payment_status) {
     try {
-      await presenter.updatePaymentStatus(id, payment_status)
+      await presenter.updateInstallationPaymentStatus(id, payment_status)
       await load()
     } catch (e) {
       alert('Failed to update payment status')
+    }
+  }
+
+  async function onStatusChange(id, status) {
+    try {
+      await presenter.updateInstallationRequestStatus(id, status)
+      await load()
+    } catch (e) {
+      alert('Failed to update service status')
     }
   }
 

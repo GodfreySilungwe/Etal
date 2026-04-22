@@ -124,7 +124,7 @@ export default class AdminPresenter {
     return res.data
   }
 
-  async updatePaymentStatus(id, payment_status) {
+  async updateInstallationPaymentStatus(id, payment_status) {
     const res = await axios.patch(`${API_BASE_URL}/api/installation-requests/${id}/payment-status`, { payment_status }, this.authConfig())
     return res.data
   }

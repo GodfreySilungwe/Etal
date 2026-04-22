@@ -32,6 +32,30 @@ export default function Cart({ items, onRemove, onUpdateItem, onCheckoutNavigate
 
   const totalSavings = totalBefore - total
 
+  // Internal helper to submit payment without UI changes
+  async function submitPaymentToBackend() {
+    const paymentData = {
+      customer_name: customerName.trim(),
+      phone: customerPhone.trim(),
+      method_used: paymentMethod,
+      transaction_reference: transactionRef,
+      product_details: items.map(item => ({
+        id: item.id,
+        name: item.name,
+        category: item.category,
+        quantity: item.quantity || 1,
+        price: Number(item.price) || 0,
+        original_price: Number(item.original_price) || 0,
+        discount_percent: item.discount_percent || 0,
+        installation_selected: item.installation_selected || false,
+        installation_price: Number(item.installation_price) || 0,
+        delivery_selected: item.delivery_selected || false,
+        delivery_price: Number(item.delivery_price) || 0
+      }))
+    }
+    return await presenter.createPaymentReference(paymentData)
+  }
+
   async function submitPaymentReference() {
     if (!customerName.trim()) {
       alert('Please enter your name')
@@ -52,42 +76,40 @@ export default function Cart({ items, onRemove, onUpdateItem, onCheckoutNavigate
 
     setSubmitting(true)
     try {
-      const paymentData = {
-        customer_name: customerName.trim(),
-        phone: customerPhone.trim(),
-        method_used: paymentMethod,
-        transaction_reference: transactionRef,
-        product_details: items.map(item => ({
-          id: item.id,
-          name: item.name,
-          category: item.category,
-          quantity: item.quantity || 1,
-          price: Number(item.price) || 0,
-          original_price: Number(item.original_price) || 0,
-          discount_percent: item.discount_percent || 0,
-          installation_selected: item.installation_selected || false,
-          installation_price: Number(item.installation_price) || 0,
-          delivery_selected: item.delivery_selected || false,
-          delivery_price: Number(item.delivery_price) || 0
-        }))
+      const response = await submitPaymentToBackend()
+      const orderId = response?.order_id || 'N/A'
+      const hasDelivery = items.some(item => item.delivery_selected)
+      
+      let deliveryInfo = ''
+      if (hasDelivery) {
+        const deliveryDate = new Date()
+        deliveryDate.setDate(deliveryDate.getDate() + 1)
+        while (deliveryDate.getDay() === 0 || deliveryDate.getDay() === 6) {
+          deliveryDate.setDate(deliveryDate.getDate() + 1)
+        }
+        deliveryInfo = `\n✓ Expected Delivery: ${deliveryDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`
+      } else {
+        deliveryInfo = `\n✓ Collection Pickup: Available at our store location\n   Contact us at +265 (0)995 718 815 for pickup details`
       }
-
-      await presenter.submitPaymentReference(paymentData)
-      alert('Payment reference submitted successfully! Our team will process your order shortly.')
+      
+      alert(`✅ Payment Received, please keep the order ID shown below!\n\nOrder ID: ${orderId}\n${deliveryInfo}\n\nOur team will process your order shortly and contact you for confirmation.`)
+      
       setShowTransactionModal(false)
       setTransactionRef('')
       setPaymentMethod('')
       setCustomerName('')
       setCustomerPhone('')
+      return response
     } catch (err) {
       const errMsg = err?.response?.data?.error || err?.message || 'Failed to submit payment'
       alert(`Error: ${errMsg}`)
+      throw err
     } finally {
       setSubmitting(false)
     }
   }
 
-  function sendViaWhatsApp() {
+  async function sendViaWhatsApp() {
     if (!customerName.trim()) {
       alert('Please enter your name')
       return
@@ -105,25 +127,53 @@ export default function Cart({ items, onRemove, onUpdateItem, onCheckoutNavigate
       return
     }
 
-    const cartSummary = items.map(item => {
-      let itemTotal = (Number(item.price)||0) * (item.quantity || 1)
-      if (item.installation_selected) itemTotal += Number(item.installation_price)||0
-      if (item.delivery_selected) itemTotal += Number(item.delivery_price)||0
-      return `${item.name} (Qty: ${item.quantity || 1}) - MK ${itemTotal.toFixed(2)}`
-    }).join('\n')
+    setSubmitting(true)
+    try {
+      const response = await submitPaymentToBackend()
+      const orderId = response?.order_id || 'N/A'
+      const hasDelivery = items.some(item => item.delivery_selected)
+      
+      let deliveryInfo = ''
+      if (hasDelivery) {
+        const deliveryDate = new Date()
+        deliveryDate.setDate(deliveryDate.getDate() + 1)
+        while (deliveryDate.getDay() === 0 || deliveryDate.getDay() === 6) {
+          deliveryDate.setDate(deliveryDate.getDate() + 1)
+        }
+        deliveryInfo = `\n✓ Expected Delivery: ${deliveryDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`
+      } else {
+        deliveryInfo = `\n✓ Collection Pickup: Available at our store location\n   Contact us at +265 (0)995 718 815 for pickup details`
+      }
 
-    const message = `*PAYMENT CONFIRMATION*\n\n*Name:* ${customerName}\n*Phone:* ${customerPhone}\n*Transaction Reference:* ${transactionRef}\n*Payment Method:* ${paymentMethod}\n*Total Amount:* MK ${total.toFixed(2)}\n\n*Items:*\n${cartSummary}\n\nPlease confirm receipt and process my order. Thank you!`
+      const cartSummary = items.map(item => {
+        let itemTotal = (Number(item.price)||0) * (item.quantity || 1)
+        if (item.installation_selected) itemTotal += Number(item.installation_price)||0
+        if (item.delivery_selected) itemTotal += Number(item.delivery_price)||0
+        return `${item.name} (Qty: ${item.quantity || 1}) - MK ${itemTotal.toFixed(2)}`
+      }).join('\n')
 
-    const encodedMessage = encodeURIComponent(message)
-    const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`
-    
-    // Also submit to backend when sending via WhatsApp
-    submitPaymentReference().then(() => {
+      const message = `*PAYMENT CONFIRMATION*\n\n*Order ID:* ${orderId}\n*Name:* ${customerName}\n*Phone:* ${customerPhone}\n*Transaction Reference:* ${transactionRef}\n*Payment Method:* ${paymentMethod}\n*Total Amount:* MK ${total.toFixed(2)}\n\n*Items:*\n${cartSummary}\n\nPlease confirm receipt and process my order. Thank you!`
+
+      const encodedMessage = encodeURIComponent(message)
+      const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`
+      
+      // Open WhatsApp first
       window.open(whatsappUrl, '_blank')
-    }).catch(err => {
-      console.error('Failed to submit before WhatsApp:', err)
-      window.open(whatsappUrl, '_blank')
-    })
+      
+      // Then show confirmation
+      alert(`✅ Payment Received!\n\nOrder ID: ${orderId}\n${deliveryInfo}\n\nWhatsApp message opened. Please send the payment confirmation.\nOur team will process your order shortly.`)
+      
+      setShowTransactionModal(false)
+      setTransactionRef('')
+      setPaymentMethod('')
+      setCustomerName('')
+      setCustomerPhone('')
+    } catch (err) {
+      const errMsg = err?.response?.data?.error || err?.message || 'Failed to submit payment'
+      alert(`Error: ${errMsg}`)
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   function goToCheckout(){
