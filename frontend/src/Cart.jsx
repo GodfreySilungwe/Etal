@@ -257,7 +257,7 @@ export default function Cart({ items, onRemove, onUpdateItem, onCheckoutNavigate
                 onClick={() => setShowTransactionModal(true)}
                 disabled={items.length===0}
               >
-                💬 Send Payment Receipt via WhatsApp
+                💬 proceed to payment
               </button>
               <button 
                 className="btn-secondary btn-full"
