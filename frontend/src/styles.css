@@ -1486,7 +1486,8 @@ form { background:transparent }
   border-radius: 12px;
   padding: 24px;
   position: sticky;
-  top: 100px;
+  top: 80px;
+  z-index: 10;
 }
 
 .order-summary h3 {

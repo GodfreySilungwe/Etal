@@ -313,76 +313,142 @@ function SalesReport({ presenter }) {
   if (loading) return <p>Loading report...</p>
   if (!report) return <p>Failed to load report</p>
 
+  const totalInvoicesAmount = report.products ? report.products.reduce((sum, p) => sum + (Number(p.revenue || 0)), 0) : 0
+  const avgTransactionValue = report.totalInvoices > 0 ? (totalInvoicesAmount / report.totalInvoices).toFixed(2) : 0
+  const totalUnits = report.products ? report.products.reduce((sum, p) => sum + (Number(p.units || 0)), 0) : 0
+
   return (
-    <div>
-      <h3>Sales Report</h3>
-      <p>Total records: {report.totalInvoices}</p>
-      <p>Invoice requests: {report.invoiceCount ?? 0}</p>
-      <p>Paid references: {report.paidReferenceCount ?? 0}</p>
-      <p>Total revenue: {report.totalRevenue.toFixed(2)}</p>
-      <h4>Highlights</h4>
-      <p>Top category: {report.topCategory ? `${report.topCategory.category} (${report.topCategory.units} units)` : 'N/A'}</p>
-      <p>Peak selling day: {report.peakDay ? `${report.peakDay.date} (${report.peakDay.units} units)` : 'N/A'}</p>
+    <div style={{ padding: '20px 0' }}>
+      <div style={{ marginBottom: 24 }}>
+        <h3 style={{ fontSize: '1.8rem', marginBottom: 16, fontWeight: 700 }}>📊 Sales Report</h3>
+        
+        {/* Key Metrics Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 24 }}>
+          {/* Total Revenue Card */}
+          <div style={{ background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(22, 163, 74, 0.1))', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: 12, padding: 20, textAlign: 'center' }}>
+            <div style={{ fontSize: '0.9rem', color: '#a1a1a1', marginBottom: 8 }}>Total Revenue</div>
+            <div style={{ fontSize: '1.8rem', fontWeight: 700, color: '#22c55e' }}>{fmtMK(report.totalRevenue)}</div>
+          </div>
 
-      <h4>Category Performance</h4>
-      <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 16 }}>
-        <thead>
-          <tr>
-            <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Category</th>
-            <th style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: '6px' }}>Units</th>
-            <th style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: '6px' }}>Revenue</th>
-          </tr>
-        </thead>
-        <tbody>
-          {(report.categories || []).map((c) => (
-            <tr key={c.category}>
-              <td style={{ padding: '6px' }}>{c.category}</td>
-              <td style={{ padding: '6px', textAlign: 'right' }}>{c.units}</td>
-              <td style={{ padding: '6px', textAlign: 'right' }}>{Number(c.revenue || 0).toFixed(2)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+          {/* Total Transactions */}
+          <div style={{ background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(37, 99, 235, 0.1))', border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: 12, padding: 20, textAlign: 'center' }}>
+            <div style={{ fontSize: '0.9rem', color: '#a1a1a1', marginBottom: 8 }}>Total Transactions</div>
+            <div style={{ fontSize: '1.8rem', fontWeight: 700, color: '#3b82f6' }}>{report.totalInvoices}</div>
+          </div>
 
-      <h4>High Selling Days</h4>
-      <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 16 }}>
-        <thead>
-          <tr>
-            <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Date</th>
-            <th style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: '6px' }}>Units</th>
-            <th style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: '6px' }}>Revenue</th>
-          </tr>
-        </thead>
-        <tbody>
-          {(report.daily || []).map((d) => (
-            <tr key={d.date}>
-              <td style={{ padding: '6px' }}>{d.date}</td>
-              <td style={{ padding: '6px', textAlign: 'right' }}>{d.units}</td>
-              <td style={{ padding: '6px', textAlign: 'right' }}>{Number(d.revenue || 0).toFixed(2)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+          {/* Total Units Sold */}
+          <div style={{ background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(147, 51, 234, 0.1))', border: '1px solid rgba(168, 85, 247, 0.3)', borderRadius: 12, padding: 20, textAlign: 'center' }}>
+            <div style={{ fontSize: '0.9rem', color: '#a1a1a1', marginBottom: 8 }}>Total Units Sold</div>
+            <div style={{ fontSize: '1.8rem', fontWeight: 700, color: '#a855f7' }}>{totalUnits}</div>
+          </div>
 
-      <h4>Products sold</h4>
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <thead>
-          <tr>
-            <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Product</th>
-            <th style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: '6px' }}>Units</th>
-            <th style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: '6px' }}>Revenue</th>
-          </tr>
-        </thead>
-        <tbody>
-          {report.products.map((p) => (
-            <tr key={p.id}>
-              <td style={{ padding: '6px' }}>{p.name}</td>
-              <td style={{ padding: '6px', textAlign: 'right' }}>{p.units}</td>
-              <td style={{ padding: '6px', textAlign: 'right' }}>{p.revenue.toFixed(2)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+          {/* Avg Transaction Value */}
+          <div style={{ background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.15), rgba(234, 88, 12, 0.1))', border: '1px solid rgba(249, 115, 22, 0.3)', borderRadius: 12, padding: 20, textAlign: 'center' }}>
+            <div style={{ fontSize: '0.9rem', color: '#a1a1a1', marginBottom: 8 }}>Avg Transaction</div>
+            <div style={{ fontSize: '1.8rem', fontWeight: 700, color: '#f97316' }}>{fmtMK(avgTransactionValue)}</div>
+          </div>
+        </div>
+
+        {/* Highlights */}
+        <div style={{ background: 'rgba(200, 16, 46, 0.08)', border: '1px solid rgba(200, 16, 46, 0.2)', borderRadius: 12, padding: 16, marginBottom: 24 }}>
+          <h4 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: 12 }}>🏆 Highlights</h4>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 12 }}>
+            <div>
+              <div style={{ fontSize: '0.85rem', color: '#a1a1a1', marginBottom: 4 }}>Top Category</div>
+              <div style={{ fontSize: '1.1rem', fontWeight: 600, color: '#f5f5f5' }}>
+                {report.topCategory ? `${report.topCategory.category} (${report.topCategory.units} units)` : 'N/A'}
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: '0.85rem', color: '#a1a1a1', marginBottom: 4 }}>Peak Selling Day</div>
+              <div style={{ fontSize: '1.1rem', fontWeight: 600, color: '#f5f5f5' }}>
+                {report.peakDay ? `${report.peakDay.date} (${report.peakDay.units} units)` : 'N/A'}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Category Performance */}
+      <div style={{ marginBottom: 24 }}>
+        <h4 style={{ fontSize: '1.3rem', fontWeight: 600, marginBottom: 16 }}>📦 Category Performance</h4>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 16, background: 'rgba(20, 20, 20, 0.5)', borderRadius: 8 }}>
+            <thead>
+              <tr style={{ background: 'rgba(200, 16, 46, 0.1)', borderBottom: '2px solid rgba(200, 16, 46, 0.3)' }}>
+                <th style={{ textAlign: 'left', padding: '12px', fontWeight: 600, color: '#f5f5f5' }}>Category</th>
+                <th style={{ textAlign: 'right', padding: '12px', fontWeight: 600, color: '#f5f5f5' }}>Units Sold</th>
+                <th style={{ textAlign: 'right', padding: '12px', fontWeight: 600, color: '#f5f5f5' }}>Revenue</th>
+                <th style={{ textAlign: 'right', padding: '12px', fontWeight: 600, color: '#f5f5f5' }}>% of Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(report.categories || []).map((c, idx) => (
+                <tr key={c.category} style={{ borderBottom: '1px solid rgba(200, 16, 46, 0.1)', background: idx % 2 === 0 ? 'rgba(200, 16, 46, 0.05)' : 'transparent' }}>
+                  <td style={{ padding: '12px', color: '#f5f5f5' }}>{c.category}</td>
+                  <td style={{ padding: '12px', textAlign: 'right', color: '#a1a1a1' }}>{c.units}</td>
+                  <td style={{ padding: '12px', textAlign: 'right', color: '#22c55e', fontWeight: 600 }}>{fmtMK(c.revenue || 0)}</td>
+                  <td style={{ padding: '12px', textAlign: 'right', color: '#f97316', fontWeight: 600 }}>
+                    {((Number(c.revenue || 0) / report.totalRevenue) * 100).toFixed(1)}%
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Daily Sales Performance */}
+      <div style={{ marginBottom: 24 }}>
+        <h4 style={{ fontSize: '1.3rem', fontWeight: 600, marginBottom: 16 }}>📈 Daily Sales Performance</h4>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 16, background: 'rgba(20, 20, 20, 0.5)', borderRadius: 8 }}>
+            <thead>
+              <tr style={{ background: 'rgba(200, 16, 46, 0.1)', borderBottom: '2px solid rgba(200, 16, 46, 0.3)' }}>
+                <th style={{ textAlign: 'left', padding: '12px', fontWeight: 600, color: '#f5f5f5' }}>Date</th>
+                <th style={{ textAlign: 'right', padding: '12px', fontWeight: 600, color: '#f5f5f5' }}>Units Sold</th>
+                <th style={{ textAlign: 'right', padding: '12px', fontWeight: 600, color: '#f5f5f5' }}>Revenue</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(report.daily || []).map((d, idx) => (
+                <tr key={d.date} style={{ borderBottom: '1px solid rgba(200, 16, 46, 0.1)', background: idx % 2 === 0 ? 'rgba(200, 16, 46, 0.05)' : 'transparent' }}>
+                  <td style={{ padding: '12px', color: '#f5f5f5' }}>{d.date}</td>
+                  <td style={{ padding: '12px', textAlign: 'right', color: '#a1a1a1' }}>{d.units}</td>
+                  <td style={{ padding: '12px', textAlign: 'right', color: '#22c55e', fontWeight: 600 }}>{fmtMK(d.revenue || 0)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Top Products */}
+      <div>
+        <h4 style={{ fontSize: '1.3rem', fontWeight: 600, marginBottom: 16 }}>🛍️ Top Selling Products</h4>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', background: 'rgba(20, 20, 20, 0.5)', borderRadius: 8 }}>
+            <thead>
+              <tr style={{ background: 'rgba(200, 16, 46, 0.1)', borderBottom: '2px solid rgba(200, 16, 46, 0.3)' }}>
+                <th style={{ textAlign: 'left', padding: '12px', fontWeight: 600, color: '#f5f5f5' }}>Product Name</th>
+                <th style={{ textAlign: 'right', padding: '12px', fontWeight: 600, color: '#f5f5f5' }}>Units Sold</th>
+                <th style={{ textAlign: 'right', padding: '12px', fontWeight: 600, color: '#f5f5f5' }}>Total Revenue</th>
+                <th style={{ textAlign: 'right', padding: '12px', fontWeight: 600, color: '#f5f5f5' }}>Avg Price</th>
+              </tr>
+            </thead>
+            <tbody>
+              {report.products.map((p, idx) => (
+                <tr key={p.id} style={{ borderBottom: '1px solid rgba(200, 16, 46, 0.1)', background: idx % 2 === 0 ? 'rgba(200, 16, 46, 0.05)' : 'transparent' }}>
+                  <td style={{ padding: '12px', color: '#f5f5f5', maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</td>
+                  <td style={{ padding: '12px', textAlign: 'right', color: '#a1a1a1' }}>{p.units}</td>
+                  <td style={{ padding: '12px', textAlign: 'right', color: '#22c55e', fontWeight: 600 }}>{fmtMK(p.revenue)}</td>
+                  <td style={{ padding: '12px', textAlign: 'right', color: '#a855f7', fontWeight: 600 }}>{fmtMK(p.revenue / p.units)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   )
 }
@@ -478,7 +544,7 @@ function PaidItems({ presenter }) {
             </div>
             <label>
               <strong>Service Status: </strong>
-              <select value={it.service_status} onChange={(e) => onStatusChange(it.id, e.target.value)}>
+              <select value={it.service_status || 'pending'} onChange={(e) => onStatusChange(it.id, e.target.value)}>
                 <option value="pending">Pending</option>
                 <option value="complete">Complete</option>
               </select>
@@ -884,29 +950,76 @@ function QuotationReport({ presenter }) {
   if (loading) return <p>Loading quotation report...</p>
   if (!report) return <p>Failed to load quotation report</p>
 
+  const completionRate = report.totalQuotes > 0 ? ((report.byStatus?.complete || 0) / report.totalQuotes * 100).toFixed(1) : 0
+
   return (
-    <div>
-      <h3>Quotation Report</h3>
-      <p>Total quotes: {report.totalQuotes}</p>
-      <p>Pending: {report.byStatus?.pending ?? 0}</p>
-      <p>Complete: {report.byStatus?.complete ?? 0}</p>
-      <p>Peak quote day: {report.peakDay ? `${report.peakDay.date} (${report.peakDay.count})` : 'N/A'}</p>
-      <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 10 }}>
-        <thead>
-          <tr>
-            <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Date</th>
-            <th style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: '6px' }}>Quote Count</th>
-          </tr>
-        </thead>
-        <tbody>
-          {(report.daily || []).map((d) => (
-            <tr key={d.date}>
-              <td style={{ padding: '6px' }}>{d.date}</td>
-              <td style={{ padding: '6px', textAlign: 'right' }}>{d.count}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div style={{ padding: '20px 0' }}>
+      <h3 style={{ fontSize: '1.8rem', marginBottom: 16, fontWeight: 700 }}>📝 Quotation Report</h3>
+      
+      {/* Key Metrics Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 24 }}>
+        {/* Total Quotes */}
+        <div style={{ background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(109, 40, 217, 0.1))', border: '1px solid rgba(139, 92, 246, 0.3)', borderRadius: 12, padding: 20, textAlign: 'center' }}>
+          <div style={{ fontSize: '0.9rem', color: '#a1a1a1', marginBottom: 8 }}>Total Quotations</div>
+          <div style={{ fontSize: '1.8rem', fontWeight: 700, color: '#8b5cf6' }}>{report.totalQuotes}</div>
+        </div>
+
+        {/* Pending Quotes */}
+        <div style={{ background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.15), rgba(234, 88, 12, 0.1))', border: '1px solid rgba(249, 115, 22, 0.3)', borderRadius: 12, padding: 20, textAlign: 'center' }}>
+          <div style={{ fontSize: '0.9rem', color: '#a1a1a1', marginBottom: 8 }}>Pending</div>
+          <div style={{ fontSize: '1.8rem', fontWeight: 700, color: '#f97316' }}>{report.byStatus?.pending ?? 0}</div>
+        </div>
+
+        {/* Completed Quotes */}
+        <div style={{ background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(22, 163, 74, 0.1))', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: 12, padding: 20, textAlign: 'center' }}>
+          <div style={{ fontSize: '0.9rem', color: '#a1a1a1', marginBottom: 8 }}>Completed</div>
+          <div style={{ fontSize: '1.8rem', fontWeight: 700, color: '#22c55e' }}>{report.byStatus?.complete ?? 0}</div>
+        </div>
+
+        {/* Completion Rate */}
+        <div style={{ background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(37, 99, 235, 0.1))', border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: 12, padding: 20, textAlign: 'center' }}>
+          <div style={{ fontSize: '0.9rem', color: '#a1a1a1', marginBottom: 8 }}>Completion Rate</div>
+          <div style={{ fontSize: '1.8rem', fontWeight: 700, color: '#3b82f6' }}>{completionRate}%</div>
+        </div>
+      </div>
+
+      {/* Peak Activity */}
+      <div style={{ background: 'rgba(200, 16, 46, 0.08)', border: '1px solid rgba(200, 16, 46, 0.2)', borderRadius: 12, padding: 16, marginBottom: 24 }}>
+        <h4 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: 12 }}>📊 Peak Activity</h4>
+        <div>
+          <div style={{ fontSize: '0.85rem', color: '#a1a1a1', marginBottom: 4 }}>Peak Quote Day</div>
+          <div style={{ fontSize: '1.1rem', fontWeight: 600, color: '#f5f5f5' }}>
+            {report.peakDay ? `${report.peakDay.date} (${report.peakDay.count} quotes)` : 'N/A'}
+          </div>
+        </div>
+      </div>
+
+      {/* Daily Quote Trends */}
+      <div>
+        <h4 style={{ fontSize: '1.3rem', fontWeight: 600, marginBottom: 16 }}>📈 Daily Quote Trends</h4>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 10, background: 'rgba(20, 20, 20, 0.5)', borderRadius: 8 }}>
+            <thead>
+              <tr style={{ background: 'rgba(200, 16, 46, 0.1)', borderBottom: '2px solid rgba(200, 16, 46, 0.3)' }}>
+                <th style={{ textAlign: 'left', padding: '12px', fontWeight: 600, color: '#f5f5f5' }}>Date</th>
+                <th style={{ textAlign: 'right', padding: '12px', fontWeight: 600, color: '#f5f5f5' }}>Quote Count</th>
+                <th style={{ textAlign: 'right', padding: '12px', fontWeight: 600, color: '#f5f5f5' }}>% of Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(report.daily || []).map((d, idx) => (
+                <tr key={d.date} style={{ borderBottom: '1px solid rgba(200, 16, 46, 0.1)', background: idx % 2 === 0 ? 'rgba(200, 16, 46, 0.05)' : 'transparent' }}>
+                  <td style={{ padding: '12px', color: '#f5f5f5' }}>{d.date}</td>
+                  <td style={{ padding: '12px', textAlign: 'right', color: '#a1a1a1', fontWeight: 600 }}>{d.count}</td>
+                  <td style={{ padding: '12px', textAlign: 'right', color: '#8b5cf6', fontWeight: 600 }}>
+                    {((d.count / report.totalQuotes) * 100).toFixed(1)}%
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   )
 }
@@ -944,16 +1057,27 @@ export default function Admin({ token, onLogout, onAuth, presenter }) {
         <div><button onClick={logout}>Logout</button></div>
       </div>
 
-      <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
-        <button className={view === 'products' ? 'primary' : 'ghost'} onClick={() => setView('products')}>Products</button>
-        <button className={view === 'services' ? 'primary' : 'ghost'} onClick={() => setView('services')}>Services</button>
-        <button className={view === 'categories' ? 'primary' : 'ghost'} onClick={() => setView('categories')}>Categories</button>
-        <button className={view === 'sales' ? 'primary' : 'ghost'} onClick={() => setView('sales')}>Sales Report</button>
-        <button className={view === 'quote-report' ? 'primary' : 'ghost'} onClick={() => setView('quote-report')}>Quotation Report</button>
-        <button className={view === 'paid' ? 'primary' : 'ghost'} onClick={() => setView('paid')}>Paid Items</button>
-        <button className={view === 'quotes' ? 'primary' : 'ghost'} onClick={() => setView('quotes')}>Quote Requests</button>
-        <button className={view === 'service-requests' ? 'primary' : 'ghost'} onClick={() => setView('service-requests')}>Service Requests</button>
-        <button className={view === 'newsletter' ? 'primary' : 'ghost'} onClick={() => setView('newsletter')}>Newsletter</button>
+      {/* Settings Tab Group */}
+      <div style={{ marginBottom: 16 }}>
+        <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#a1a1a1', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>⚙️ Settings</div>
+        <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+          <button className={view === 'products' ? 'primary' : 'ghost'} onClick={() => setView('products')}>Products</button>
+          <button className={view === 'services' ? 'primary' : 'ghost'} onClick={() => setView('services')}>Services</button>
+          <button className={view === 'categories' ? 'primary' : 'ghost'} onClick={() => setView('categories')}>Categories</button>
+          <button className={view === 'newsletter' ? 'primary' : 'ghost'} onClick={() => setView('newsletter')}>Newsletter</button>
+        </div>
+      </div>
+
+      {/* Reports & Orders Tab Group */}
+      <div>
+        <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#a1a1a1', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>📊 Reports & Orders</div>
+        <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+          <button className={view === 'sales' ? 'primary' : 'ghost'} onClick={() => setView('sales')}>Sales Report</button>
+          <button className={view === 'quote-report' ? 'primary' : 'ghost'} onClick={() => setView('quote-report')}>Quotation Report</button>
+          <button className={view === 'paid' ? 'primary' : 'ghost'} onClick={() => setView('paid')}>Paid Items</button>
+          <button className={view === 'quotes' ? 'primary' : 'ghost'} onClick={() => setView('quotes')}>Quote Requests</button>
+          <button className={view === 'service-requests' ? 'primary' : 'ghost'} onClick={() => setView('service-requests')}>Service Requests</button>
+        </div>
       </div>
 
       {view === 'products' && <ProductsAdmin presenter={presenter} token={token} />}

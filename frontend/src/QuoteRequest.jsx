@@ -34,7 +34,18 @@ export default function QuoteRequest({ presenter, cart = [], onComplete }) {
 
   return (
     <div>
-      <h2>Request a Quote</h2>
+      <div style={{ display: 'flex', gap: 12, marginBottom: 16, alignItems: 'center' }}>
+        <h2 style={{ margin: 0 }}>Request a Quote</h2>
+        {onComplete && (
+          <button 
+            type="button"
+            onClick={() => onComplete()}
+            style={{ padding: '8px 16px', borderRadius: 6, border: 'none', background: '#c1c1c1', color: '#111827', cursor: 'pointer', fontWeight: 600 }}
+          >
+            ← Back
+          </button>
+        )}
+      </div>
       <form onSubmit={submit} style={{ maxWidth: 560 }}>
         <input placeholder="Full name" value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
         <input placeholder="Phone" value={phone} onChange={(e) => setPhone(e.target.value)} />

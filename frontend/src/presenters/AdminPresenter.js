@@ -133,4 +133,9 @@ export default class AdminPresenter {
     const res = await axios.get(`${API_BASE_URL}/api/newsletter`, this.authConfig())
     return Array.isArray(res.data) ? res.data : []
   }
+
+  async submitPaymentReference(paymentData) {
+    const res = await axios.post(`${API_BASE_URL}/api/payment-references`, paymentData)
+    return res.data
+  }
 }

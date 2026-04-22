@@ -12,6 +12,9 @@ export default function Cart({ items, onRemove, onUpdateItem, onCheckoutNavigate
   const [showTransactionModal, setShowTransactionModal] = useState(false)
   const [transactionRef, setTransactionRef] = useState('')
   const [paymentMethod, setPaymentMethod] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [customerName, setCustomerName] = useState('')
+  const [customerPhone, setCustomerPhone] = useState('')
 
   const total = items.reduce((s,i)=>{
     let price = Number(i.price)||0
@@ -29,7 +32,70 @@ export default function Cart({ items, onRemove, onUpdateItem, onCheckoutNavigate
 
   const totalSavings = totalBefore - total
 
+  async function submitPaymentReference() {
+    if (!customerName.trim()) {
+      alert('Please enter your name')
+      return
+    }
+    if (!customerPhone.trim()) {
+      alert('Please enter your phone number')
+      return
+    }
+    if (!transactionRef.trim()) {
+      alert('Please enter your transaction reference number')
+      return
+    }
+    if (!paymentMethod) {
+      alert('Please select the payment method used')
+      return
+    }
+
+    setSubmitting(true)
+    try {
+      const paymentData = {
+        customer_name: customerName.trim(),
+        phone: customerPhone.trim(),
+        method_used: paymentMethod,
+        transaction_reference: transactionRef,
+        product_details: items.map(item => ({
+          id: item.id,
+          name: item.name,
+          category: item.category,
+          quantity: item.quantity || 1,
+          price: Number(item.price) || 0,
+          original_price: Number(item.original_price) || 0,
+          discount_percent: item.discount_percent || 0,
+          installation_selected: item.installation_selected || false,
+          installation_price: Number(item.installation_price) || 0,
+          delivery_selected: item.delivery_selected || false,
+          delivery_price: Number(item.delivery_price) || 0
+        }))
+      }
+
+      await presenter.submitPaymentReference(paymentData)
+      alert('Payment reference submitted successfully! Our team will process your order shortly.')
+      setShowTransactionModal(false)
+      setTransactionRef('')
+      setPaymentMethod('')
+      setCustomerName('')
+      setCustomerPhone('')
+    } catch (err) {
+      const errMsg = err?.response?.data?.error || err?.message || 'Failed to submit payment'
+      alert(`Error: ${errMsg}`)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   function sendViaWhatsApp() {
+    if (!customerName.trim()) {
+      alert('Please enter your name')
+      return
+    }
+    if (!customerPhone.trim()) {
+      alert('Please enter your phone number')
+      return
+    }
     if (!transactionRef.trim()) {
       alert('Please enter your transaction reference number')
       return
@@ -46,15 +112,18 @@ export default function Cart({ items, onRemove, onUpdateItem, onCheckoutNavigate
       return `${item.name} (Qty: ${item.quantity || 1}) - MK ${itemTotal.toFixed(2)}`
     }).join('\n')
 
-    const message = `*PAYMENT CONFIRMATION*\n\n*Transaction Reference:* ${transactionRef}\n*Payment Method:* ${paymentMethod}\n*Total Amount:* MK ${total.toFixed(2)}\n\n*Items:*\n${cartSummary}\n\nPlease confirm receipt and process my order. Thank you!`
+    const message = `*PAYMENT CONFIRMATION*\n\n*Name:* ${customerName}\n*Phone:* ${customerPhone}\n*Transaction Reference:* ${transactionRef}\n*Payment Method:* ${paymentMethod}\n*Total Amount:* MK ${total.toFixed(2)}\n\n*Items:*\n${cartSummary}\n\nPlease confirm receipt and process my order. Thank you!`
 
     const encodedMessage = encodeURIComponent(message)
     const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`
     
-    window.open(whatsappUrl, '_blank')
-    setShowTransactionModal(false)
-    setTransactionRef('')
-    setPaymentMethod('')
+    // Also submit to backend when sending via WhatsApp
+    submitPaymentReference().then(() => {
+      window.open(whatsappUrl, '_blank')
+    }).catch(err => {
+      console.error('Failed to submit before WhatsApp:', err)
+      window.open(whatsappUrl, '_blank')
+    })
   }
 
   function goToCheckout(){
@@ -257,7 +326,7 @@ export default function Cart({ items, onRemove, onUpdateItem, onCheckoutNavigate
                 onClick={() => setShowTransactionModal(true)}
                 disabled={items.length===0}
               >
-                💬 proceed to payment
+                � Proceed to Pay
               </button>
               <button 
                 className="btn-secondary btn-full"
@@ -268,22 +337,7 @@ export default function Cart({ items, onRemove, onUpdateItem, onCheckoutNavigate
               </button>
             </div>
 
-            {/* Payment Methods */}
-            <div className="payment-card">
-              <h4>Payment Methods</h4>
-              <div className="payment-method-item">
-                <span className="payment-icon">💬</span>
-                <div>
-                  <strong>WhatsApp</strong>
-                  <a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" rel="noopener noreferrer">
-                    +265 995 718 815
-                  </a>
-                </div>
-              </div>
-              <div className="payment-note">
-                Send your payment proof and transaction reference via WhatsApp for quick processing
-              </div>
-            </div>
+
           </div>
         </div>
       )}
@@ -303,7 +357,63 @@ export default function Cart({ items, onRemove, onUpdateItem, onCheckoutNavigate
             </div>
 
             <div className="modal-body">
-              <p className="modal-subtitle">Share your payment details with us via WhatsApp</p>
+              {/* Payment Instructions */}
+              <div style={{
+                background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(22, 163, 74, 0.1))',
+                border: '2px solid rgba(34, 197, 94, 0.4)',
+                borderRadius: 12,
+                padding: 16,
+                marginBottom: 20
+              }}>
+                <h4 style={{ margin: '0 0 12px 0', color: '#22c55e', fontSize: '1.1rem', fontWeight: 700 }}>💰 Transfer Payment Through These Methods:</h4>
+                <div style={{ display: 'grid', gap: 10 }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                    <span style={{ fontSize: '1.5rem' }}>🏦</span>
+                    <div>
+                      <strong style={{ color: '#f5f5f5' }}>National Bank Account</strong>
+                      <div style={{ color: '#a1a1a1', fontSize: '0.95rem', fontFamily: 'monospace', marginTop: 4 }}>Account Number: 76648848</div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                    <span style={{ fontSize: '1.5rem' }}>📱</span>
+                    <div>
+                      <strong style={{ color: '#f5f5f5' }}>Airtel Money</strong>
+                      <div style={{ color: '#a1a1a1', fontSize: '0.95rem', fontFamily: 'monospace', marginTop: 4 }}>Code: 677744</div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                    <span style={{ fontSize: '1.5rem' }}>💳</span>
+                    <div>
+                      <strong style={{ color: '#f5f5f5' }}>Mpamba</strong>
+                      <div style={{ color: '#a1a1a1', fontSize: '0.95rem', fontFamily: 'monospace', marginTop: 4 }}>Code: 87765</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <p className="modal-subtitle">Submit your payment details below or share via WhatsApp</p>
+
+              <div className="form-group">
+                <label>Your Full Name</label>
+                <input
+                  type="text"
+                  placeholder="Enter your full name"
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  className="form-input"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Your Phone Number</label>
+                <input
+                  type="tel"
+                  placeholder="e.g., 0995718815 or +265995718815"
+                  value={customerPhone}
+                  onChange={(e) => setCustomerPhone(e.target.value)}
+                  className="form-input"
+                />
+              </div>
 
               <div className="form-group">
                 <label>Select Payment Method</label>
@@ -358,7 +468,15 @@ export default function Cart({ items, onRemove, onUpdateItem, onCheckoutNavigate
               </button>
               <button 
                 className="btn-primary"
+                onClick={submitPaymentReference}
+                disabled={submitting}
+              >
+                {submitting ? '⏳ Submitting...' : '✓ Submit Details'}
+              </button>
+              <button 
+                className="btn-primary"
                 onClick={sendViaWhatsApp}
+                disabled={submitting}
               >
                 💬 Send via WhatsApp
               </button>
