@@ -9,9 +9,8 @@ const fmtMK = (val) => {
 export default function ProductCard({
   product,
   onSelect,
+  onBuy,
   onAddToCart,
-  onAction,
-  actionLabel = 'Buy',
   showAction = true,
   extraContent = null
 }) {
@@ -22,13 +21,20 @@ export default function ProductCard({
   const newPrice = Number(product.price) || 0
   const savedAmount = Math.max(oldPrice - newPrice, 0)
 
-  const handleSelect = () => {
+  const handleSelect = (e) => {
+    if (e.target.tagName === 'BUTTON') return;
     if (onSelect) onSelect(product.id)
   }
 
-  const handleAction = (e) => {
+  const handleBuy = (e) => {
     e.stopPropagation()
-    if (onAction) return onAction(product)
+    e.nativeEvent.stopImmediatePropagation()
+    if (onBuy) onBuy(product, { sourceEl: e.currentTarget.closest('.product-card'), imageUrl: product.image_url })
+  }
+
+  const handleAddToCart = (e) => {
+    e.stopPropagation()
+    e.nativeEvent.stopImmediatePropagation()
     if (onAddToCart) onAddToCart(product, { sourceEl: e.currentTarget.closest('.product-card'), imageUrl: product.image_url })
   }
 
@@ -67,9 +73,14 @@ export default function ProductCard({
         {extraContent}
 
         {showAction && (
-          <button onClick={handleAction}>
-            {actionLabel}
-          </button>
+          <div className="card-buttons">
+            <button type="button" onClick={handleBuy} className="buy-button">
+              Buy
+            </button>
+            <button type="button" onClick={handleAddToCart} className="add-to-cart-button">
+              Add to Cart
+            </button>
+          </div>
         )}
       </div>
     </div>

@@ -58,6 +58,14 @@ async function update(id, service) {
   return res.Attributes;
 }
 
+async function getById(id) {
+  const res = await docClient.get({
+    TableName: APP_TABLE,
+    Key: { PK: `SERVICE#${id}`, SK: 'MAIN' },
+  }).promise();
+  return res.Item || null;
+}
+
 async function remove(id) {
   await docClient.delete({
     TableName: APP_TABLE,
@@ -65,4 +73,4 @@ async function remove(id) {
   }).promise();
 }
 
-module.exports = { getAll, create, update, remove }; 
+module.exports = { getAll, getById, create, update, remove }; 

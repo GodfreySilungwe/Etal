@@ -63,7 +63,7 @@ export default function Services({ presenter, setView, onRequestInstallation }) 
 
       <div style={{ marginTop: '40px' }}>
         <h2>Request a Service</h2>
-        <p>Use service cards above or request delivery below.</p>
+        <p>Use service cards above.</p>
       </div>
     </div>
   )

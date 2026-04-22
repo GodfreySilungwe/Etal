@@ -38487,6 +38487,7 @@ var require_installationModel = __commonJS({
     async function create(data) {
       const id = randomUUID();
       const createdAt = (/* @__PURE__ */ new Date()).toISOString();
+      const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
       const item = {
         PK: `INSTALLATION#${id}`,
         SK: "MAIN",
@@ -38494,11 +38495,15 @@ var require_installationModel = __commonJS({
         GSI1SK: createdAt,
         id,
         type: "INSTALLATION",
+        customer_name: data.customer_name,
+        phone: data.phone,
         customer_location: data.customer_location,
         preferred_date: data.preferred_date,
         product: data.product,
         product_id: data.product_id || null,
         product_price: data.product_price != null ? data.product_price : null,
+        payment_status: data.payment_status || "pending",
+        order_id: data.payment_status === "paid" ? orderId : null,
         status: "pending",
         createdAt
       };
@@ -38530,7 +38535,27 @@ var require_installationModel = __commonJS({
       return res.Attributes;
     }
     __name(updateStatus, "updateStatus");
-    module2.exports = { create, list, updateStatus };
+    async function updatePaymentStatus(id, payment_status) {
+      const orderId = payment_status === "paid" ? `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}` : null;
+      const params = {
+        TableName: APP_TABLE,
+        Key: { PK: `INSTALLATION#${id}`, SK: "MAIN" },
+        UpdateExpression: "SET #payment_status = :payment_status" + (orderId ? ", #order_id = :order_id" : ""),
+        ExpressionAttributeNames: {
+          "#payment_status": "payment_status",
+          ...orderId && { "#order_id": "order_id" }
+        },
+        ExpressionAttributeValues: {
+          ":payment_status": payment_status,
+          ...orderId && { ":order_id": orderId }
+        },
+        ReturnValues: "ALL_NEW"
+      };
+      const res = await docClient.update(params).promise();
+      return res.Attributes;
+    }
+    __name(updatePaymentStatus, "updatePaymentStatus");
+    module2.exports = { create, list, updateStatus, updatePaymentStatus };
   }
 });
 
@@ -38540,10 +38565,10 @@ var require_installationController = __commonJS({
     var installationModel = require_installationModel();
     async function create(req, res) {
       try {
-        const { customer_location, preferred_date, product, product_id, product_price } = req.body;
-        if (!customer_location || !preferred_date || !product)
+        const { customer_name, phone, customer_location, preferred_date, product, product_id, product_price, payment_status } = req.body;
+        if (!customer_name || !phone || !customer_location || !preferred_date || !product)
           return res.status(400).json({ error: "Missing fields" });
-        const created = await installationModel.create({ customer_location, preferred_date, product, product_id, product_price });
+        const created = await installationModel.create({ customer_name, phone, customer_location, preferred_date, product, product_id, product_price, payment_status });
         res.json(created);
       } catch (err) {
         console.error(err);
@@ -38577,7 +38602,23 @@ var require_installationController = __commonJS({
       }
     }
     __name(updateStatus, "updateStatus");
-    module2.exports = { create, list, updateStatus };
+    async function updatePaymentStatus(req, res) {
+      try {
+        const payment_status = String(req.body.payment_status || "").toLowerCase();
+        if (!["pending", "paid"].includes(payment_status)) {
+          return res.status(400).json({ error: "Invalid payment status" });
+        }
+        const updated = await installationModel.updatePaymentStatus(req.params.id, payment_status);
+        if (!updated)
+          return res.status(404).json({ error: "Not found" });
+        res.json(updated);
+      } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to update payment status" });
+      }
+    }
+    __name(updatePaymentStatus, "updatePaymentStatus");
+    module2.exports = { create, list, updateStatus, updatePaymentStatus };
   }
 });
 
@@ -38591,6 +38632,7 @@ var require_installationRoutes = __commonJS({
     router.post("/", installationController.create);
     router.get("/", authenticateToken, installationController.list);
     router.patch("/:id/status", authenticateToken, installationController.updateStatus);
+    router.patch("/:id/payment-status", authenticateToken, installationController.updatePaymentStatus);
     module2.exports = router;
   }
 });
@@ -38914,6 +38956,7 @@ var require_paymentReferenceModel = __commonJS({
       }) : [];
       const id = randomUUID();
       const createdAt = (/* @__PURE__ */ new Date()).toISOString();
+      const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
       const item = {
         PK: `PAYMENT#${id}`,
         SK: "MAIN",
@@ -38926,6 +38969,7 @@ var require_paymentReferenceModel = __commonJS({
         method_used,
         transaction_reference,
         product_details: normalizedDetails,
+        order_id: orderId,
         service_status: "pending",
         submitted_at: createdAt
       };
@@ -39356,6 +39400,14 @@ var require_serviceModel = __commonJS({
       return res.Attributes;
     }
     __name(update, "update");
+    async function getById(id) {
+      const res = await docClient.get({
+        TableName: APP_TABLE,
+        Key: { PK: `SERVICE#${id}`, SK: "MAIN" }
+      }).promise();
+      return res.Item || null;
+    }
+    __name(getById, "getById");
     async function remove(id) {
       await docClient.delete({
         TableName: APP_TABLE,
@@ -39363,7 +39415,114 @@ var require_serviceModel = __commonJS({
       }).promise();
     }
     __name(remove, "remove");
-    module2.exports = { getAll, create, update, remove };
+    module2.exports = { getAll, getById, create, update, remove };
+  }
+});
+
+// src/controllers/serviceController.js
+var require_serviceController = __commonJS({
+  "src/controllers/serviceController.js"(exports2, module2) {
+    var serviceModel = require_serviceModel();
+    var AWS = require("aws-sdk");
+    var { randomUUID } = require("crypto");
+    AWS.config.update({
+      region: process.env.AWS_REGION || "us-east-1"
+    });
+    var s3 = new AWS.S3();
+    var uploadToS3 = /* @__PURE__ */ __name(async (file, key) => {
+      const params = {
+        Bucket: process.env.S3_BUCKET_NAME,
+        Key: key,
+        Body: file.buffer,
+        ContentType: file.mimetype
+      };
+      return s3.upload(params).promise();
+    }, "uploadToS3");
+    async function list(req, res) {
+      try {
+        const items = await serviceModel.getAll();
+        res.json(items);
+      } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to list services" });
+      }
+    }
+    __name(list, "list");
+    async function get(req, res) {
+      try {
+        const item = await serviceModel.getById(req.params.id);
+        if (!item)
+          return res.status(404).json({ error: "Not found" });
+        res.json(item);
+      } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to get service" });
+      }
+    }
+    __name(get, "get");
+    async function create(req, res) {
+      try {
+        let image_url = req.body.image_url || null;
+        if (req.file) {
+          const unique = Date.now() + "-" + Math.round(Math.random() * 1e9);
+          const ext = require("path").extname(req.file.originalname) || "";
+          const key = `services/${req.file.fieldname}-${unique}${ext}`;
+          const result = await uploadToS3(req.file, key);
+          image_url = `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/${key}`;
+        }
+        const serviceData = {
+          ...req.body,
+          image_url
+        };
+        const created = await serviceModel.create(serviceData);
+        res.json(created);
+      } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to create service" });
+      }
+    }
+    __name(create, "create");
+    async function update(req, res) {
+      try {
+        let image_url = req.body.image_url || null;
+        if (req.file) {
+          const unique = Date.now() + "-" + Math.round(Math.random() * 1e9);
+          const ext = require("path").extname(req.file.originalname) || "";
+          const key = `services/${req.file.fieldname}-${unique}${ext}`;
+          const result = await uploadToS3(req.file, key);
+          image_url = `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/${key}`;
+        }
+        const serviceData = {
+          ...req.body,
+          image_url
+        };
+        const updated = await serviceModel.update(req.params.id, serviceData);
+        if (!updated)
+          return res.status(404).json({ error: "Not found" });
+        res.json(updated);
+      } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to update service" });
+      }
+    }
+    __name(update, "update");
+    async function remove(req, res) {
+      try {
+        await serviceModel.remove(req.params.id);
+        res.json({ success: true });
+      } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to delete service" });
+      }
+    }
+    __name(remove, "remove");
+    module2.exports = {
+      list,
+      get,
+      create,
+      update,
+      remove
+    };
   }
 });
 
@@ -39372,52 +39531,17 @@ var require_serviceRoutes = __commonJS({
   "src/routes/serviceRoutes.js"(exports2, module2) {
     var express = require_express2();
     var router = express.Router();
+    var serviceController = require_serviceController();
     var { authenticateToken } = require_auth();
-    var serviceModel = require_serviceModel();
-    router.get("/", async (req, res) => {
-      try {
-        const rows = await serviceModel.getAll();
-        res.json(rows);
-      } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Failed to list services" });
-      }
-    });
-    router.post("/", authenticateToken, async (req, res) => {
-      try {
-        const { name, description, image_url, price } = req.body;
-        if (!name)
-          return res.status(400).json({ error: "Name is required" });
-        const created = await serviceModel.create({ name, description, image_url, price });
-        res.json(created);
-      } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Failed to create service" });
-      }
-    });
-    router.put("/:id", authenticateToken, async (req, res) => {
-      try {
-        const { name, description, image_url, price } = req.body;
-        if (!name)
-          return res.status(400).json({ error: "Name is required" });
-        const updated = await serviceModel.update(req.params.id, { name, description, image_url, price });
-        if (!updated)
-          return res.status(404).json({ error: "Not found" });
-        res.json(updated);
-      } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Failed to update service" });
-      }
-    });
-    router.delete("/:id", authenticateToken, async (req, res) => {
-      try {
-        await serviceModel.remove(req.params.id);
-        res.json({ success: true });
-      } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Failed to delete service" });
-      }
-    });
+    var multer = require_multer();
+    var storage = multer.memoryStorage();
+    var upload = multer({ storage });
+    router.get("/", serviceController.list);
+    router.get("/:id", serviceController.get);
+    router.post("/", authenticateToken, upload.single("image"), serviceController.create);
+    router.put("/:id", authenticateToken, upload.single("image"), serviceController.update);
+    router.delete("/:id", authenticateToken, serviceController.remove);
+    module2.exports = router;
     module2.exports = router;
   }
 });

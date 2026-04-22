@@ -6,7 +6,7 @@ const fmtMK = (val) => {
   return `MK ${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
-export default function Cart({ items, onRemove, onUpdateItem, onCheckoutNavigate, onQuoteNavigate, onRequestInstallation, onRequestDelivery, presenter }){
+export default function Cart({ items, onRemove, onUpdateItem, onCheckoutNavigate, onQuoteNavigate, onBack, onRequestInstallation, onRequestDelivery, presenter }){
   const total = items.reduce((s,i)=>{
     let price = Number(i.price)||0
     if (i.installation_selected) price += Number(i.installation_price)||0
@@ -28,7 +28,16 @@ export default function Cart({ items, onRemove, onUpdateItem, onCheckoutNavigate
 
   return (
     <div>
-      <h2>Cart</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <h2>Cart</h2>
+        <button
+          type="button"
+          onClick={() => onBack && onBack()}
+          style={{ background: 'transparent', border: '1px solid #333', color: '#333', padding: '8px 12px', borderRadius: '6px', cursor: 'pointer' }}
+        >
+          Back
+        </button>
+      </div>
       {items.length===0 && <p>Your cart is empty</p>}
       <ul>
         {items.map((it, idx)=> {
@@ -147,7 +156,7 @@ export default function Cart({ items, onRemove, onUpdateItem, onCheckoutNavigate
       )}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
         <button className="buy-like-btn" onClick={goToCheckout} disabled={items.length===0}>
-          Send Transaction Reference
+          After Paying Send Trans Ref here
         </button>
         <button className="buy-like-btn" onClick={() => onQuoteNavigate && onQuoteNavigate()} disabled={items.length===0}>
           Request a Quote
@@ -155,13 +164,13 @@ export default function Cart({ items, onRemove, onUpdateItem, onCheckoutNavigate
       </div>
       <div className="payment-methods">
         <h3>Payment Methods</h3>
-        <p>Please transfer payment and send proof of payment to WhatsApp: <strong>0995718815</strong>.</p>
-        <p><strong>Bank:</strong> National Bank</p>
-        <p><strong>Branch:</strong> Lilongwe</p>
-        <p><strong>Account Name:</strong> ETAL Enterprises</p>
-        <p><strong>Account Number:</strong> 868655</p>
-        <p><strong>Airtel Money:</strong> 0995718815</p>
-        <p><strong>TNM Mpamba:</strong> 0888481844</p>
+        <p>Please transfer payment and send proof of payment to WhatsApp: <strong>XXXXXXX</strong>.</p>
+        <p><strong>Bank:</strong> Your Bank</p>
+        <p><strong>Branch:</strong> Your Branch</p>
+        <p><strong>Account Name:</strong> Your Shop Name</p>
+        <p><strong>Account Number:</strong> XXX</p>
+        <p><strong>Mobile Money 1 Money:</strong> XXXXXX</p>
+        <p><strong>Mobile Money 2:</strong> XXXXXXX</p>
       </div>
     </div>
   )

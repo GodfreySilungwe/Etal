@@ -6,7 +6,7 @@ const fmtMK = (val) => {
   return `MK ${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
-export default function ProductDetails({ id, onBack, onBuy, presenter }){
+export default function ProductDetails({ id, onBack, onBuy, onAddToCart, presenter }){
   const [p, setP] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -70,6 +70,12 @@ export default function ProductDetails({ id, onBack, onBuy, presenter }){
               onClick={(e) => onBuy && onBuy(p, { sourceEl: e.currentTarget, imageUrl: p.image_url })}
             >
               Buy
+            </button>
+            <button
+              className="add-to-cart-btn"
+              onClick={(e) => onAddToCart && onAddToCart(p, { sourceEl: e.currentTarget, imageUrl: p.image_url })}
+            >
+              Add to Cart
             </button>
           </div>
         </div>

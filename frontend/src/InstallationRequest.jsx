@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react'
 
 export default function InstallationRequest({ presenter, requestContext }){
+  const [name, setName] = useState('')
+  const [phone, setPhone] = useState('')
   const [location, setLocation] = useState('')
   const [date, setDate] = useState('')
   const [product, setProduct] = useState('')
@@ -16,7 +18,7 @@ export default function InstallationRequest({ presenter, requestContext }){
 
   async function submit(e){
     e.preventDefault()
-    if(!location || !date || !product) return alert('Please fill all fields')
+    if(!name || !phone || !location || !date || !product) return alert('Please fill all fields')
     setLoading(true)
     try{
       const rawId = requestContext?.product?.id
@@ -25,6 +27,8 @@ export default function InstallationRequest({ presenter, requestContext }){
         : (typeof rawId === 'string' && /^\d+$/.test(rawId) ? Number(rawId) : null)
 
       await presenter.createInstallation({
+        customer_name: name,
+        phone,
         customer_location: location,
         preferred_date: date,
         product,
@@ -32,7 +36,7 @@ export default function InstallationRequest({ presenter, requestContext }){
         product_price: productPrice
       })
       alert('Installation request submitted')
-      setLocation(''); setDate(''); setProduct(''); setProductPrice('')
+      setName(''); setPhone(''); setLocation(''); setDate(''); setProduct(''); setProductPrice('')
     }catch(err){
       console.error(err)
       const msg = err?.response?.data?.error || err?.message || 'Submission failed'
@@ -44,6 +48,8 @@ export default function InstallationRequest({ presenter, requestContext }){
     <div>
       <h2>Request Installation / Service</h2>
       <form onSubmit={submit} style={{maxWidth:480}}>
+        <input placeholder="Full name" value={name} onChange={(e)=>setName(e.target.value)} />
+        <input placeholder="Phone number" value={phone} onChange={(e)=>setPhone(e.target.value)} />
         <input placeholder="Customer location" value={location} onChange={(e)=>setLocation(e.target.value)} />
         <input type="date" value={date} onChange={(e)=>setDate(e.target.value)} />
         <input placeholder="Service or product name" value={product} onChange={(e)=>setProduct(e.target.value)} />

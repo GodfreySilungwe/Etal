@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import ProductCard from './ProductCard'
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, ArcElement } from 'chart.js'
+import { Line, Bar, Pie, Doughnut } from 'react-chartjs-2'
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, ArcElement)
 
 const fmtMK = (val) => val == null || val === '' ? '' : `MK ${Number(val).toFixed(2)}`
 const EMPTY_FORM = {
@@ -426,6 +430,7 @@ function PaidItems({ presenter }) {
             <p><strong>Phone:</strong> {it.phone}</p>
             <p><strong>Method:</strong> {it.method_used}</p>
             <p><strong>Transaction Ref:</strong> {it.transaction_reference}</p>
+            {it.order_id && <p><strong>Order ID:</strong> {it.order_id}</p>}
             <p><strong>Submitted:</strong> {new Date(it.submitted_at).toLocaleString()}</p>
             <div style={{ marginTop: 8 }}>
               <strong>Paid Items</strong>
@@ -443,8 +448,13 @@ function PaidItems({ presenter }) {
                 <tbody>
                   {(() => {
                     let rows = []
-                    try { rows = JSON.parse(it.product_details || '[]') } catch (e) { rows = [] }
-                    return rows.map((r, idx) => (
+                    if (Array.isArray(it.product_details)) {
+                      rows = it.product_details
+                    } else {
+                      try { rows = JSON.parse(it.product_details || '[]') } catch (e) { rows = [] }
+                    }
+                    if (!Array.isArray(rows)) rows = []
+                    return rows.length > 0 ? rows.map((r, idx) => (
                       <tr key={`${it.id}-${idx}`}>
                         <td style={{ padding: '4px' }}>{r.name || '-'}</td>
                         <td style={{ padding: '4px', textAlign: 'right' }}>{r.quantity ?? 1}</td>
@@ -457,7 +467,11 @@ function PaidItems({ presenter }) {
                         </td>
                         <td style={{ padding: '4px', textAlign: 'right' }}>{fmtMK(r.total_price)}</td>
                       </tr>
-                    ))
+                    )) : (
+                      <tr>
+                        <td colSpan="6" style={{ padding: '8px', textAlign: 'center', color: '#666' }}>No paid item details available</td>
+                      </tr>
+                    )
                   })()}
                 </tbody>
               </table>
@@ -561,8 +575,13 @@ function QuoteRequestsAdmin({ presenter }) {
                 <tbody>
                   {(() => {
                     let rows = []
-                    try { rows = JSON.parse(it.product_details || '[]') } catch (e) { rows = [] }
-                    return rows.map((r, idx) => (
+                    if (Array.isArray(it.product_details)) {
+                      rows = it.product_details
+                    } else {
+                      try { rows = JSON.parse(it.product_details || '[]') } catch (e) { rows = [] }
+                    }
+                    if (!Array.isArray(rows)) rows = []
+                    return rows.length > 0 ? rows.map((r, idx) => (
                       <tr key={`${it.id}-${idx}`}>
                         <td style={{ padding: '4px' }}>{r.name || '-'}</td>
                         <td style={{ padding: '4px' }}>{r.category || '-'}</td>
@@ -573,7 +592,13 @@ function QuoteRequestsAdmin({ presenter }) {
                         </td>
                         <td style={{ padding: '4px', textAlign: 'right' }}>{fmtMK(r.line_amount)}</td>
                       </tr>
-                    ))
+                    )) : (
+                      <tr>
+                        <td colSpan="6" style={{ padding: '8px', textAlign: 'center', color: '#666' }}>
+                          No quoted item details available
+                        </td>
+                      </tr>
+                    )
                   })()}
                 </tbody>
               </table>
@@ -636,12 +661,12 @@ function ServiceRequestsAdmin({ presenter }) {
     }
   }
 
-  async function onStatusChange(id, status) {
+  async function onPaymentStatusChange(id, payment_status) {
     try {
-      await presenter.updateInstallationRequestStatus(id, status)
+      await presenter.updatePaymentStatus(id, payment_status)
       await load()
     } catch (e) {
-      alert('Failed to update service request status')
+      alert('Failed to update payment status')
     }
   }
 
@@ -656,22 +681,37 @@ function ServiceRequestsAdmin({ presenter }) {
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
           <tr>
+            <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Name</th>
+            <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Phone</th>
             <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Service/Product</th>
             <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Location</th>
             <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Preferred Date</th>
             <th style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: '6px' }}>Fee</th>
-            <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Requested</th>
+            <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Payment Status</th>
             <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Status</th>
           </tr>
         </thead>
         <tbody>
           {items.map((it) => (
             <tr key={it.id}>
+              <td style={{ padding: '6px' }}>{it.customer_name}</td>
+              <td style={{ padding: '6px' }}>{it.phone}</td>
               <td style={{ padding: '6px' }}>{it.product}</td>
               <td style={{ padding: '6px' }}>{it.customer_location}</td>
               <td style={{ padding: '6px' }}>{it.preferred_date ? String(it.preferred_date).slice(0, 10) : '-'}</td>
               <td style={{ padding: '6px', textAlign: 'right' }}>{fmtMK(it.product_price)}</td>
-              <td style={{ padding: '6px' }}>{new Date(it.requested_at).toLocaleString()}</td>
+              <td style={{ padding: '6px' }}>
+                <select value={it.payment_status || 'pending'} onChange={(e) => onPaymentStatusChange(it.id, e.target.value)}>
+                  <option value="pending">Pending</option>
+                  <option value="paid">Paid</option>
+                </select>
+                {it.payment_status === 'paid' && it.order_id && (
+                  <div style={{ marginTop: '4px', fontSize: '12px', color: '#666' }}>
+                    <strong>Order ID: {it.order_id}</strong><br />
+                    Message: Our staff will call you with confirmation.
+                  </div>
+                )}
+              </td>
               <td style={{ padding: '6px' }}>
                 <select value={it.status || 'pending'} onChange={(e) => onStatusChange(it.id, e.target.value)}>
                   <option value="pending">Pending</option>
@@ -735,6 +775,7 @@ function ServicesAdmin({ presenter }) {
   const [services, setServices] = useState([])
   const [editing, setEditing] = useState(null)
   const [form, setForm] = useState({ name: '', description: '', image_url: '', price: '' })
+  const [selectedFile, setSelectedFile] = useState(null)
 
   async function load() {
     try {
@@ -750,20 +791,7 @@ function ServicesAdmin({ presenter }) {
   function startEdit(s) {
     setEditing(s.id)
     setForm({ name: s.name || '', description: s.description || '', image_url: s.image_url || '', price: s.price ?? '' })
-  }
-
-  async function uploadServiceImage(file) {
-    if (!file) return
-    const token = localStorage.getItem('etal_token')
-    const fd = new FormData()
-    fd.append('image', file)
-    const res = await axios.post('http://localhost:4000/api/upload', fd, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-        Authorization: token ? `Bearer ${token}` : ''
-      }
-    })
-    return res.data?.url
+    setSelectedFile(null)
   }
 
   async function submit(e) {
@@ -771,12 +799,22 @@ function ServicesAdmin({ presenter }) {
     if (!form.name.trim()) return alert('Service name is required')
     const price = Number(form.price)
     if (Number.isNaN(price)) return alert('Price must be a number')
-    const payload = { name: form.name.trim(), description: form.description || null, image_url: form.image_url || null, price }
     try {
-      if (editing) await presenter.updateService(editing, payload)
-      else await presenter.createService(payload)
+      const formData = new FormData()
+      formData.append('name', form.name.trim())
+      formData.append('description', form.description || '')
+      formData.append('price', price.toString())
+      if (selectedFile) {
+        formData.append('image', selectedFile)
+      } else if (form.image_url) {
+        formData.append('image_url', form.image_url)
+      }
+
+      if (editing) await presenter.updateService(editing, formData)
+      else await presenter.createService(formData)
       setEditing(null)
       setForm({ name: '', description: '', image_url: '', price: '' })
+      setSelectedFile(null)
       await load()
     } catch (err) {
       const msg = err?.response?.data?.error || 'Failed to save service'
@@ -812,18 +850,12 @@ function ServicesAdmin({ presenter }) {
         <form onSubmit={submit}>
           <input placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
           <textarea placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-          <input type="file" accept="image/*" onChange={async (e) => {
-            try {
-              const url = await uploadServiceImage(e.target.files?.[0])
-              if (url) setForm((prev) => ({ ...prev, image_url: url }))
-            } catch (err) {
-              alert('Service image upload failed')
-            }
-          }} />
-          {form.image_url && <div className="thumb"><img src={form.image_url} alt="service preview" /></div>}
+          <input type="file" accept="image/*" onChange={(e) => setSelectedFile(e.target.files?.[0] || null)} />
+          {selectedFile && <div className="thumb"><img src={URL.createObjectURL(selectedFile)} alt="service preview" /></div>}
+          {form.image_url && !selectedFile && <div className="thumb"><img src={form.image_url} alt="service preview" /></div>}
           <input type="number" step="0.01" placeholder="Price" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} />
           <button type="submit">Save Service</button>
-          {editing && <button type="button" onClick={() => { setEditing(null); setForm({ name: '', description: '', image_url: '', price: '' }) }}>Cancel</button>}
+          {editing && <button type="button" onClick={() => { setEditing(null); setForm({ name: '', description: '', image_url: '', price: '' }); setSelectedFile(null) }}>Cancel</button>}
         </form>
       </div>
     </div>

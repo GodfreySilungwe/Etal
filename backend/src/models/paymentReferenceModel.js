@@ -48,6 +48,7 @@ async function create(data) {
 
   const id = randomUUID();
   const createdAt = new Date().toISOString();
+  const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
   const item = {
     PK: `PAYMENT#${id}`,
     SK: 'MAIN',
@@ -60,6 +61,7 @@ async function create(data) {
     method_used,
     transaction_reference,
     product_details: normalizedDetails,
+    order_id: orderId,
     service_status: 'pending',
     submitted_at: createdAt,
   };

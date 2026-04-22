@@ -25,14 +25,14 @@ export default function Checkout({ presenter, cart = [], onComplete, onRequestQu
     if(!name || !phone || !methodUsed || !transactionReference) return alert('Please provide all required fields')
     setLoading(true)
     try{
-      await presenter.createPaymentReference({
+      const result = await presenter.createPaymentReference({
         customer_name: name,
         phone,
         method_used: methodUsed,
         transaction_reference: transactionReference,
         product_details: JSON.stringify(cart)
       })
-      alert('Transaction reference submitted successfully')
+      alert(`Transaction reference submitted successfully. Your Order ID is: ${result.order_id}. Our staff will call you with confirmation.`)
       onComplete && onComplete()
     }catch(err){
       console.error(err)

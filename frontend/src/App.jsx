@@ -25,6 +25,47 @@ const API_BASE_URL = 'https://xw9zhawaqf.execute-api.us-east-1.amazonaws.com'
 
 const LOGO_URL = 'https://etalbackendbusketfileuploads.s3.us-east-1.amazonaws.com/uploads/Log.png'
 
+function NewsletterSubscription({ presenter }) {
+  const [email, setEmail] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  async function subscribe(e) {
+    e.preventDefault()
+    if (!email || !email.includes('@')) return alert('Please enter a valid email')
+    setLoading(true)
+    try {
+      await presenter.subscribeNewsletter(email)
+      alert('Subscribed successfully!')
+      setEmail('')
+    } catch (err) {
+      console.error(err)
+      alert('Failed to subscribe. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <form onSubmit={subscribe} style={{ maxWidth: '400px', margin: '0 auto' }}>
+      <input
+        type="email"
+        placeholder="Enter your email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        style={{ width: '100%', padding: '10px', marginBottom: '10px', borderRadius: '5px', border: '1px solid #ccc' }}
+        required
+      />
+      <button
+        type="submit"
+        disabled={loading}
+        style={{ width: '100%', padding: '10px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
+      >
+        {loading ? 'Subscribing...' : 'Subscribe'}
+      </button>
+    </form>
+  )
+}
+
 function decodeJWT(token) {
   try {
     const payload = token.split('.')[1]
@@ -64,7 +105,7 @@ function Nav({ setView, cartCount, userRole, token, presenter }) {
   )
 }
 
-  function Home({ presenter, onSelect, onAddToCart, onRequestInstallation, onRequestDelivery }) {
+  function Home({ presenter, onSelect, onAddToCart, onAddToCartOnly, onRequestInstallation, onRequestDelivery }) {
   const [categories, setCategories] = useState([])
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
@@ -97,8 +138,8 @@ function Nav({ setView, cartCount, userRole, token, presenter }) {
   return (
     <div>
       <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-        <h1 className="rainbow-text">Welcome to ETAL Enterprises</h1>
-        <p className="home-tagline">Your Trusted Partner for Quality Electronics - Opposite Central Hospital</p>
+        <h1 className="rainbow-text">Welcome to xxxx Shop</h1>
+        <p className="home-tagline">Your Trusted Partner for Quality - Your Product here - Opposite - Your Location</p>
       </div>
 
       {loading ? (
@@ -115,7 +156,8 @@ function Nav({ setView, cartCount, userRole, token, presenter }) {
                     key={p.id}
                     product={p}
                     onSelect={onSelect}
-                    onAddToCart={onAddToCart}
+                    onBuy={onAddToCart}
+                    onAddToCart={onAddToCartOnly}
                   />
                 ))}
               </div>
@@ -135,13 +177,25 @@ function Nav({ setView, cartCount, userRole, token, presenter }) {
                   key={p.id}
                   product={p}
                   onSelect={onSelect}
-                  onAddToCart={onAddToCart}
+                  onBuy={onAddToCart}
+                  onAddToCart={onAddToCartOnly}
                 />
               ))}
             </div>
           </div>
         )
       })()}
+
+      {/* Newsletter Subscription */}
+      <div style={{ textAlign: 'center', marginTop: '40px', padding: '20px', backgroundColor: '#f9f9f9', borderRadius: '10px' }}>
+        <h2>Subscribe to Our Newsletter</h2>
+        <p>Stay updated with the latest products and offers!</p>
+        <div style={{ margin: '10px 0', padding: '10px', backgroundColor: '#fff', borderRadius: '10px', border: '1px solid #ddd' }}>
+          <p style={{ margin: 0, fontWeight: '700', color: '#333' }}>Our Help Desk</p>
+          <p style={{ margin: '6px 0 0', color: '#555' }}>For inquiries call or WhatsApp: <strong style={{ color: '#000' }}>0995719915</strong></p>
+        </div>
+        <NewsletterSubscription presenter={presenter} />
+      </div>
 
     </div>
   )
@@ -264,8 +318,23 @@ export default function App() {
     }
     
     setCart(next)
-    localStorage.setItem('etal_cart', JSON.stringify(next))
+    try {
+      localStorage.setItem('etal_cart', JSON.stringify(next))
+    } catch (e) {
+      console.error('Failed to save cart to localStorage', e)
+    }
     playCartSound()
+  }
+
+  function handleBuy(product, animationMeta) {
+    addToCart(product)
+    animateAddToCart(animationMeta)
+    setView('cart')
+  }
+
+  function handleAddToCart(product, animationMeta) {
+    addToCart(product)
+    animateAddToCart(animationMeta)
   }
 
   function animateAddToCart({ sourceEl, imageUrl } = {}) {
@@ -297,11 +366,6 @@ export default function App() {
       cartButton.classList.add('cart-bump')
       setTimeout(() => cartButton.classList.remove('cart-bump'), 250)
     }, { once: true })
-  }
-
-  function handleBuy(product, animationMeta) {
-    addToCart(product)
-    animateAddToCart(animationMeta)
   }
 
   function removeFromCart(idx){
@@ -341,14 +405,14 @@ export default function App() {
       <Nav setView={setView} cartCount={cart.reduce((total, item) => total + (item.quantity || 1), 0)} userRole={userRole} token={token} presenter={presenter} />
       <ErrorBoundary>
         <main>
-          {view === 'home' && <Home presenter={presenter} onSelect={(id)=>{ setSelectedProductId(id); setView('details') }} onAddToCart={handleBuy} onRequestInstallation={requestInstallation} onRequestDelivery={requestDelivery} />}
-          {view === 'products' && <Products presenter={presenter} onSelect={(id)=>{ setSelectedProductId(id); setView('details') }} onAddToCart={handleBuy} onRequestInstallation={requestInstallation} onRequestDelivery={requestDelivery} />}
+          {view === 'home' && <Home presenter={presenter} onSelect={(id)=>{ setSelectedProductId(id); setView('details') }} onAddToCart={handleBuy} onAddToCartOnly={handleAddToCart} onRequestInstallation={requestInstallation} onRequestDelivery={requestDelivery} />}
+          {view === 'products' && <Products presenter={presenter} onSelect={(id)=>{ setSelectedProductId(id); setView('details') }} onBuy={handleBuy} onAddToCart={handleAddToCart} onRequestInstallation={requestInstallation} onRequestDelivery={requestDelivery} />}
           {view === 'services' && <Services presenter={presenter} setView={setView} onRequestInstallation={requestInstallation} />}
           {view === 'about' && <AboutUs />}
           {view === 'installation' && <InstallationRequest presenter={presenter} requestContext={requestContext} />}
           {view === 'delivery' && <DeliveryRequest presenter={presenter} requestContext={requestContext} />}
-          {view === 'details' && <ProductDetails presenter={presenter} id={selectedProductId} onBack={()=>setView('products')} onBuy={handleBuy} />}
-          {view === 'cart' && <Cart presenter={presenter} items={cart} onRemove={removeFromCart} onUpdateItem={updateCartItem} onCheckoutNavigate={()=>setView('checkout')} onQuoteNavigate={()=>setView('quote')} onRequestInstallation={requestInstallation} onRequestDelivery={requestDelivery} />}
+          {view === 'details' && <ProductDetails presenter={presenter} id={selectedProductId} onBack={()=>setView('products')} onBuy={handleBuy} onAddToCart={handleAddToCart} />}
+          {view === 'cart' && <Cart presenter={presenter} items={cart} onRemove={removeFromCart} onUpdateItem={updateCartItem} onCheckoutNavigate={()=>setView('checkout')} onQuoteNavigate={()=>setView('quote')} onBack={() => setView('products')} onRequestInstallation={requestInstallation} onRequestDelivery={requestDelivery} />}
           {view === 'checkout' && <Checkout presenter={presenter} cart={cart} onRequestQuote={() => setView('quote')} onComplete={() => { setCart([]); localStorage.removeItem('etal_cart'); setView('home') }} />}
           {view === 'quote' && <QuoteRequest presenter={presenter} cart={cart} onComplete={() => setView('home')} />}
           {view === 'admin' && <Admin presenter={adminPresenter} token={token} onLogout={()=>{ setToken(null); localStorage.removeItem('etal_token'); delete axios.defaults.headers.common['Authorization'] }} onAuth={(t)=>{ setToken(t) }} />}

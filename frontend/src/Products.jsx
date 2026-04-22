@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import ProductCard from './ProductCard'
 
-export default function Products({ presenter, onSelect, onAddToCart, onRequestInstallation, onRequestDelivery }) {
+export default function Products({ presenter, onSelect, onBuy, onAddToCart, onRequestInstallation, onRequestDelivery }) {
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('')
   const [items, setItems] = useState([])
@@ -77,6 +77,7 @@ export default function Products({ presenter, onSelect, onAddToCart, onRequestIn
               key={p.id}
               product={p}
               onSelect={onSelect}
+              onBuy={onBuy}
               onAddToCart={onAddToCart}
             />
           ))}
