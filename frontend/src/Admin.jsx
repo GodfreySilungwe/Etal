@@ -39,12 +39,31 @@ function Login({ onLogin, presenter }) {
   }
 
   return (
-    <form onSubmit={submit} className="admin-login">
-      <h3>Admin Login</h3>
-      <input placeholder="Username" value={username} onChange={(e)=>setUsername(e.target.value)} />
-      <input placeholder="Password" value={password} type="password" onChange={(e)=>setPassword(e.target.value)} />
-      <button type="submit">Login</button>
-    </form>
+    <div className="admin-login-container">
+      <form onSubmit={submit} className="admin-login-modern">
+        <div className="login-header">
+          <div className="login-icon">🔐</div>
+          <h3>Admin Login</h3>
+          <p>Enter your credentials to access the dashboard</p>
+        </div>
+        <div className="login-form">
+          <input 
+            placeholder="Username" 
+            value={username} 
+            onChange={(e)=>setUsername(e.target.value)} 
+            className="login-input"
+          />
+          <input 
+            placeholder="Password" 
+            value={password} 
+            type="password" 
+            onChange={(e)=>setPassword(e.target.value)} 
+            className="login-input"
+          />
+          <button type="submit" className="login-btn">Login</button>
+        </div>
+      </form>
+    </div>
   )
 }
 
@@ -176,24 +195,27 @@ function ProductsAdmin({ presenter, token }) {
   }
 
   return (
-    <div>
-      <h3>Products</h3>
-      <div className="admin-grid">
-        <div className="admin-list">
-          <div className="grid">
+    <div className="admin-products-modern">
+      <div className="admin-grid-modern">
+        <div className="admin-list-modern">
+          <div className="admin-list-header">
+            <h3>Products Management</h3>
+            <span>{products.length} products</span>
+          </div>
+          <div className="products-grid-admin">
             {products.map((p) => (
               <ProductCard
                 key={p.id}
                 product={p}
                 showAction={false}
                 extraContent={
-                  <div className="admin-card-actions">
-                    <p>Category: {p.category || 'Uncategorized'}</p>
-                    <p>Installation: {fmtMK(p.installation_price) || '-'}</p>
-                    <p>Delivery: {fmtMK(p.delivery_price) || '-'}</p>
-                    <div className="admin-card-buttons">
-                      <button type="button" onClick={() => startEdit(p)}>Edit</button>
-                      <button type="button" onClick={() => del(p.id)}>Delete</button>
+                  <div className="admin-card-actions-modern">
+                    <p><strong>Category:</strong> {p.category || 'Uncategorized'}</p>
+                    <p><strong>Installation:</strong> {fmtMK(p.installation_price) || '-'}</p>
+                    <p><strong>Delivery:</strong> {fmtMK(p.delivery_price) || '-'}</p>
+                    <div className="admin-card-buttons-modern">
+                      <button type="button" onClick={() => startEdit(p)} className="edit-btn">Edit</button>
+                      <button type="button" onClick={() => del(p.id)} className="delete-btn">Delete</button>
                     </div>
                   </div>
                 }
@@ -202,58 +224,99 @@ function ProductsAdmin({ presenter, token }) {
           </div>
         </div>
 
-        <div className="admin-form">
-          <h4>{editing ? 'Edit' : 'Create'} Product</h4>
+        <div className="admin-form-modern">
+          <div className="form-header">
+            <h4>{editing ? 'Edit Product' : 'Create New Product'}</h4>
+          </div>
           <form onSubmit={submit}>
-            {errors.length > 0 && <div className="errors">{errors.map((er, i) => <div key={i}>{er}</div>)}</div>}
-            <input placeholder="Name" value={form.name} onChange={(e)=>setForm({ ...form, name: e.target.value })} />
-            <select value={form.category_id} onChange={(e)=>setForm({ ...form, category_id: e.target.value })}>
-              <option value=''>-- Select Category --</option>
-              {Array.isArray(categories) ? categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>) : null}
-            </select>
-            <input placeholder="Description" value={form.description} onChange={(e)=>setForm({ ...form, description: e.target.value })} />
-            <input type="number" step="0.01" placeholder="Price" value={form.price} onChange={(e)=>{
-              const nextPrice = e.target.value
-              setForm({
-                ...form,
-                price: nextPrice,
-                discount_percent: calculateDiscountPercent(
-                  form.original_price === '' ? null : Number(form.original_price),
-                  nextPrice === '' ? null : Number(nextPrice)
-                )
-              })
-            }} />
-            <input type="number" step="0.01" placeholder="Original Price" value={form.original_price} onChange={(e)=>{
-              const nextOriginalPrice = e.target.value
-              setForm({
-                ...form,
-                original_price: nextOriginalPrice,
-                discount_percent: calculateDiscountPercent(
-                  nextOriginalPrice === '' ? null : Number(nextOriginalPrice),
-                  form.price === '' ? null : Number(form.price)
-                )
-              })
-            }} />
-            <input type="number" step="1" placeholder="Discount Percent" value={form.discount_percent} readOnly />
-            <input type="number" step="1" placeholder="Stock" value={form.stock} onChange={(e)=>setForm({ ...form, stock: e.target.value })} />
-            <input type="number" step="0.01" placeholder="Installation Price" value={form.installation_price} onChange={(e)=>setForm({ ...form, installation_price: e.target.value })} />
-            <input type="number" step="0.01" placeholder="Delivery Price" value={form.delivery_price} onChange={(e)=>setForm({ ...form, delivery_price: e.target.value })} />
-            <textarea placeholder='Specs JSON' value={form.specs} onChange={(e)=>setForm({ ...form, specs: e.target.value })} />
-            <div>
+            {errors.length > 0 && <div className="errors-modern">{errors.map((er, i) => <div key={i}>⚠️ {er}</div>)}</div>}
+            <div className="form-group-admin">
+              <label>Product Name</label>
+              <input placeholder="Enter product name" value={form.name} onChange={(e)=>setForm({ ...form, name: e.target.value })} />
+            </div>
+            <div className="form-group-admin">
+              <label>Category</label>
+              <select value={form.category_id} onChange={(e)=>setForm({ ...form, category_id: e.target.value })}>
+                <option value=''>-- Select Category --</option>
+                {Array.isArray(categories) ? categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>) : null}
+              </select>
+            </div>
+            <div className="form-group-admin">
+              <label>Description</label>
+              <textarea placeholder="Product description" value={form.description} onChange={(e)=>setForm({ ...form, description: e.target.value })} rows="3" />
+            </div>
+            <div className="form-row-admin">
+              <div className="form-group-admin half">
+                <label>Price (MWK)</label>
+                <input type="number" step="0.01" placeholder="Price" value={form.price} onChange={(e)=>{
+                  const nextPrice = e.target.value
+                  setForm({
+                    ...form,
+                    price: nextPrice,
+                    discount_percent: calculateDiscountPercent(
+                      form.original_price === '' ? null : Number(form.original_price),
+                      nextPrice === '' ? null : Number(nextPrice)
+                    )
+                  })
+                }} />
+              </div>
+              <div className="form-group-admin half">
+                <label>Original Price (MWK)</label>
+                <input type="number" step="0.01" placeholder="Original Price" value={form.original_price} onChange={(e)=>{
+                  const nextOriginalPrice = e.target.value
+                  setForm({
+                    ...form,
+                    original_price: nextOriginalPrice,
+                    discount_percent: calculateDiscountPercent(
+                      nextOriginalPrice === '' ? null : Number(nextOriginalPrice),
+                      form.price === '' ? null : Number(form.price)
+                    )
+                  })
+                }} />
+              </div>
+            </div>
+            <div className="form-row-admin">
+              <div className="form-group-admin half">
+                <label>Discount Percent</label>
+                <input type="number" step="1" placeholder="Discount Percent" value={form.discount_percent} readOnly className="readonly-input" />
+              </div>
+              <div className="form-group-admin half">
+                <label>Stock Quantity</label>
+                <input type="number" step="1" placeholder="Stock" value={form.stock} onChange={(e)=>setForm({ ...form, stock: e.target.value })} />
+              </div>
+            </div>
+            <div className="form-row-admin">
+              <div className="form-group-admin half">
+                <label>Installation Price (MWK)</label>
+                <input type="number" step="0.01" placeholder="Installation Price" value={form.installation_price} onChange={(e)=>setForm({ ...form, installation_price: e.target.value })} />
+              </div>
+              <div className="form-group-admin half">
+                <label>Delivery Price (MWK)</label>
+                <input type="number" step="0.01" placeholder="Delivery Price" value={form.delivery_price} onChange={(e)=>setForm({ ...form, delivery_price: e.target.value })} />
+              </div>
+            </div>
+            <div className="form-group-admin">
+              <label>Specifications (JSON format)</label>
+              <textarea placeholder='{"brand": "Example", "color": "Black"}' value={form.specs} onChange={(e)=>setForm({ ...form, specs: e.target.value })} rows="2" />
+            </div>
+            <div className="form-group-admin">
+              <label>Product Image</label>
               <input type="file" accept="image/*" onChange={(e) => {
                 const file = e.target.files?.[0]
                 setSelectedFile(file)
                 if (file) {
                   const url = URL.createObjectURL(file)
-                  setForm((prev) => ({ ...prev, image_url: url })) // Preview
+                  setForm((prev) => ({ ...prev, image_url: url }))
                 } else {
                   setForm((prev) => ({ ...prev, image_url: '' }))
                 }
               }} />
-              {form.image_url && <div className="thumb"><img src={form.image_url} alt="preview" /></div>}
+              {form.image_url && <div className="image-preview"><img src={form.image_url} alt="preview" /></div>}
             </div>
-            <button type="submit">Save</button>
-            {editing && <button type="button" onClick={() => { setEditing(null); setForm(EMPTY_FORM); setErrors([]); setSelectedFile(null) }}>Cancel Edit</button>}
+            <div className="form-actions-admin">
+              <button type="submit" className="save-btn">Save Product</button>
+              {editing && <button type="button" className="cancel-btn" onClick={() => { setEditing(null); setForm(EMPTY_FORM); setErrors([]); setSelectedFile(null) }}>Cancel Edit</button>}
+            </div>
           </form>
         </div>
       </div>
@@ -282,12 +345,23 @@ function CategoriesAdmin({ presenter }) {
     load()
   }
   return (
-    <div>
-      <h3>Categories</h3>
-      <ul>
-        {Array.isArray(categories) ? categories.map((c) => <li key={c.id}>{c.name} <button onClick={() => del(c.id)}>Delete</button></li>) : null}
-      </ul>
-      <form onSubmit={add}><input placeholder="Name" value={name} onChange={(e)=>setName(e.target.value)} /><button>Add</button></form>
+    <div className="categories-admin-modern">
+      <div className="categories-header">
+        <h3>Categories Management</h3>
+        <span>{categories.length} categories</span>
+      </div>
+      <div className="categories-list">
+        {Array.isArray(categories) ? categories.map((c) => (
+          <div key={c.id} className="category-item">
+            <span className="category-name">{c.name}</span>
+            <button onClick={() => del(c.id)} className="delete-category-btn">Delete</button>
+          </div>
+        )) : null}
+      </div>
+      <form onSubmit={add} className="add-category-form">
+        <input placeholder="New category name" value={name} onChange={(e)=>setName(e.target.value)} />
+        <button type="submit">Add Category</button>
+      </form>
     </div>
   )
 }
@@ -310,85 +384,90 @@ function SalesReport({ presenter }) {
 
   useEffect(() => { load() }, [])
 
-  if (loading) return <p>Loading report...</p>
-  if (!report) return <p>Failed to load report</p>
+  if (loading) return <div className="loading-state"><div className="spinner"></div><p>Loading report...</p></div>
+  if (!report) return <p className="error-state">Failed to load report</p>
 
   const totalInvoicesAmount = report.products ? report.products.reduce((sum, p) => sum + (Number(p.revenue || 0)), 0) : 0
   const avgTransactionValue = report.totalInvoices > 0 ? (totalInvoicesAmount / report.totalInvoices).toFixed(2) : 0
   const totalUnits = report.products ? report.products.reduce((sum, p) => sum + (Number(p.units || 0)), 0) : 0
 
   return (
-    <div style={{ padding: '20px 0' }}>
-      <div style={{ marginBottom: 24 }}>
-        <h3 style={{ fontSize: '1.8rem', marginBottom: 16, fontWeight: 700 }}>📊 Sales Report</h3>
-        
-        {/* Key Metrics Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 24 }}>
-          {/* Total Revenue Card */}
-          <div style={{ background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(22, 163, 74, 0.1))', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: 12, padding: 20, textAlign: 'center' }}>
-            <div style={{ fontSize: '0.9rem', color: '#a1a1a1', marginBottom: 8 }}>Total Revenue</div>
-            <div style={{ fontSize: '1.8rem', fontWeight: 700, color: '#22c55e' }}>{fmtMK(report.totalRevenue)}</div>
-          </div>
-
-          {/* Total Transactions */}
-          <div style={{ background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(37, 99, 235, 0.1))', border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: 12, padding: 20, textAlign: 'center' }}>
-            <div style={{ fontSize: '0.9rem', color: '#a1a1a1', marginBottom: 8 }}>Total Transactions</div>
-            <div style={{ fontSize: '1.8rem', fontWeight: 700, color: '#3b82f6' }}>{report.totalInvoices}</div>
-          </div>
-
-          {/* Total Units Sold */}
-          <div style={{ background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(147, 51, 234, 0.1))', border: '1px solid rgba(168, 85, 247, 0.3)', borderRadius: 12, padding: 20, textAlign: 'center' }}>
-            <div style={{ fontSize: '0.9rem', color: '#a1a1a1', marginBottom: 8 }}>Total Units Sold</div>
-            <div style={{ fontSize: '1.8rem', fontWeight: 700, color: '#a855f7' }}>{totalUnits}</div>
-          </div>
-
-          {/* Avg Transaction Value */}
-          <div style={{ background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.15), rgba(234, 88, 12, 0.1))', border: '1px solid rgba(249, 115, 22, 0.3)', borderRadius: 12, padding: 20, textAlign: 'center' }}>
-            <div style={{ fontSize: '0.9rem', color: '#a1a1a1', marginBottom: 8 }}>Avg Transaction</div>
-            <div style={{ fontSize: '1.8rem', fontWeight: 700, color: '#f97316' }}>{fmtMK(avgTransactionValue)}</div>
+    <div className="report-container-modern">
+      <div className="report-header">
+        <h3>📊 Sales Report</h3>
+        <p>Performance overview and analytics</p>
+      </div>
+      
+      {/* Key Metrics Grid */}
+      <div className="metrics-grid">
+        <div className="metric-card revenue">
+          <div className="metric-icon">💰</div>
+          <div className="metric-info">
+            <div className="metric-label">Total Revenue</div>
+            <div className="metric-value">{fmtMK(report.totalRevenue)}</div>
           </div>
         </div>
 
-        {/* Highlights */}
-        <div style={{ background: 'rgba(200, 16, 46, 0.08)', border: '1px solid rgba(200, 16, 46, 0.2)', borderRadius: 12, padding: 16, marginBottom: 24 }}>
-          <h4 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: 12 }}>🏆 Highlights</h4>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 12 }}>
-            <div>
-              <div style={{ fontSize: '0.85rem', color: '#a1a1a1', marginBottom: 4 }}>Top Category</div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 600, color: '#f5f5f5' }}>
-                {report.topCategory ? `${report.topCategory.category} (${report.topCategory.units} units)` : 'N/A'}
-              </div>
-            </div>
-            <div>
-              <div style={{ fontSize: '0.85rem', color: '#a1a1a1', marginBottom: 4 }}>Peak Selling Day</div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 600, color: '#f5f5f5' }}>
-                {report.peakDay ? `${report.peakDay.date} (${report.peakDay.units} units)` : 'N/A'}
-              </div>
-            </div>
+        <div className="metric-card transactions">
+          <div className="metric-icon">📋</div>
+          <div className="metric-info">
+            <div className="metric-label">Total Transactions</div>
+            <div className="metric-value">{report.totalInvoices}</div>
+          </div>
+        </div>
+
+        <div className="metric-card units">
+          <div className="metric-icon">📦</div>
+          <div className="metric-info">
+            <div className="metric-label">Total Units Sold</div>
+            <div className="metric-value">{totalUnits}</div>
+          </div>
+        </div>
+
+        <div className="metric-card average">
+          <div className="metric-icon">⚡</div>
+          <div className="metric-info">
+            <div className="metric-label">Avg Transaction</div>
+            <div className="metric-value">{fmtMK(avgTransactionValue)}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Highlights */}
+      <div className="highlights-card">
+        <h4>🏆 Highlights</h4>
+        <div className="highlights-grid">
+          <div>
+            <div className="highlight-label">Top Category</div>
+            <div className="highlight-value">{report.topCategory ? `${report.topCategory.category} (${report.topCategory.units} units)` : 'N/A'}</div>
+          </div>
+          <div>
+            <div className="highlight-label">Peak Selling Day</div>
+            <div className="highlight-value">{report.peakDay ? `${report.peakDay.date} (${report.peakDay.units} units)` : 'N/A'}</div>
           </div>
         </div>
       </div>
 
       {/* Category Performance */}
-      <div style={{ marginBottom: 24 }}>
-        <h4 style={{ fontSize: '1.3rem', fontWeight: 600, marginBottom: 16 }}>📦 Category Performance</h4>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 16, background: 'rgba(20, 20, 20, 0.5)', borderRadius: 8 }}>
+      <div className="data-table-container">
+        <h4>📦 Category Performance</h4>
+        <div className="data-table-wrapper">
+          <table className="data-table">
             <thead>
-              <tr style={{ background: 'rgba(200, 16, 46, 0.1)', borderBottom: '2px solid rgba(200, 16, 46, 0.3)' }}>
-                <th style={{ textAlign: 'left', padding: '12px', fontWeight: 600, color: '#f5f5f5' }}>Category</th>
-                <th style={{ textAlign: 'right', padding: '12px', fontWeight: 600, color: '#f5f5f5' }}>Units Sold</th>
-                <th style={{ textAlign: 'right', padding: '12px', fontWeight: 600, color: '#f5f5f5' }}>Revenue</th>
-                <th style={{ textAlign: 'right', padding: '12px', fontWeight: 600, color: '#f5f5f5' }}>% of Total</th>
+              <tr>
+                <th>Category</th>
+                <th className="text-right">Units Sold</th>
+                <th className="text-right">Revenue</th>
+                <th className="text-right">% of Total</th>
               </tr>
             </thead>
             <tbody>
               {(report.categories || []).map((c, idx) => (
-                <tr key={c.category} style={{ borderBottom: '1px solid rgba(200, 16, 46, 0.1)', background: idx % 2 === 0 ? 'rgba(200, 16, 46, 0.05)' : 'transparent' }}>
-                  <td style={{ padding: '12px', color: '#f5f5f5' }}>{c.category}</td>
-                  <td style={{ padding: '12px', textAlign: 'right', color: '#a1a1a1' }}>{c.units}</td>
-                  <td style={{ padding: '12px', textAlign: 'right', color: '#22c55e', fontWeight: 600 }}>{fmtMK(c.revenue || 0)}</td>
-                  <td style={{ padding: '12px', textAlign: 'right', color: '#f97316', fontWeight: 600 }}>
+                <tr key={c.category}>
+                  <td>{c.category}</td>
+                  <td className="text-right">{c.units}</td>
+                  <td className="text-right revenue-value">{fmtMK(c.revenue || 0)}</td>
+                  <td className="text-right percentage-value">
                     {((Number(c.revenue || 0) / report.totalRevenue) * 100).toFixed(1)}%
                   </td>
                 </tr>
@@ -398,51 +477,26 @@ function SalesReport({ presenter }) {
         </div>
       </div>
 
-      {/* Daily Sales Performance */}
-      <div style={{ marginBottom: 24 }}>
-        <h4 style={{ fontSize: '1.3rem', fontWeight: 600, marginBottom: 16 }}>📈 Daily Sales Performance</h4>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 16, background: 'rgba(20, 20, 20, 0.5)', borderRadius: 8 }}>
-            <thead>
-              <tr style={{ background: 'rgba(200, 16, 46, 0.1)', borderBottom: '2px solid rgba(200, 16, 46, 0.3)' }}>
-                <th style={{ textAlign: 'left', padding: '12px', fontWeight: 600, color: '#f5f5f5' }}>Date</th>
-                <th style={{ textAlign: 'right', padding: '12px', fontWeight: 600, color: '#f5f5f5' }}>Units Sold</th>
-                <th style={{ textAlign: 'right', padding: '12px', fontWeight: 600, color: '#f5f5f5' }}>Revenue</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(report.daily || []).map((d, idx) => (
-                <tr key={d.date} style={{ borderBottom: '1px solid rgba(200, 16, 46, 0.1)', background: idx % 2 === 0 ? 'rgba(200, 16, 46, 0.05)' : 'transparent' }}>
-                  <td style={{ padding: '12px', color: '#f5f5f5' }}>{d.date}</td>
-                  <td style={{ padding: '12px', textAlign: 'right', color: '#a1a1a1' }}>{d.units}</td>
-                  <td style={{ padding: '12px', textAlign: 'right', color: '#22c55e', fontWeight: 600 }}>{fmtMK(d.revenue || 0)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
       {/* Top Products */}
-      <div>
-        <h4 style={{ fontSize: '1.3rem', fontWeight: 600, marginBottom: 16 }}>🛍️ Top Selling Products</h4>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', background: 'rgba(20, 20, 20, 0.5)', borderRadius: 8 }}>
+      <div className="data-table-container">
+        <h4>🛍️ Top Selling Products</h4>
+        <div className="data-table-wrapper">
+          <table className="data-table">
             <thead>
-              <tr style={{ background: 'rgba(200, 16, 46, 0.1)', borderBottom: '2px solid rgba(200, 16, 46, 0.3)' }}>
-                <th style={{ textAlign: 'left', padding: '12px', fontWeight: 600, color: '#f5f5f5' }}>Product Name</th>
-                <th style={{ textAlign: 'right', padding: '12px', fontWeight: 600, color: '#f5f5f5' }}>Units Sold</th>
-                <th style={{ textAlign: 'right', padding: '12px', fontWeight: 600, color: '#f5f5f5' }}>Total Revenue</th>
-                <th style={{ textAlign: 'right', padding: '12px', fontWeight: 600, color: '#f5f5f5' }}>Avg Price</th>
+              <tr>
+                <th>Product Name</th>
+                <th className="text-right">Units Sold</th>
+                <th className="text-right">Total Revenue</th>
+                <th className="text-right">Avg Price</th>
               </tr>
             </thead>
             <tbody>
               {report.products.map((p, idx) => (
-                <tr key={p.id} style={{ borderBottom: '1px solid rgba(200, 16, 46, 0.1)', background: idx % 2 === 0 ? 'rgba(200, 16, 46, 0.05)' : 'transparent' }}>
-                  <td style={{ padding: '12px', color: '#f5f5f5', maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</td>
-                  <td style={{ padding: '12px', textAlign: 'right', color: '#a1a1a1' }}>{p.units}</td>
-                  <td style={{ padding: '12px', textAlign: 'right', color: '#22c55e', fontWeight: 600 }}>{fmtMK(p.revenue)}</td>
-                  <td style={{ padding: '12px', textAlign: 'right', color: '#a855f7', fontWeight: 600 }}>{fmtMK(p.revenue / p.units)}</td>
+                <tr key={p.id}>
+                  <td className="product-name">{p.name}</td>
+                  <td className="text-right">{p.units}</td>
+                  <td className="text-right revenue-value">{fmtMK(p.revenue)}</td>
+                  <td className="text-right price-value">{fmtMK(p.revenue / p.units)}</td>
                 </tr>
               ))}
             </tbody>
@@ -481,102 +535,87 @@ function PaidItems({ presenter }) {
 
   useEffect(() => { load() }, [])
 
-  if (loading) return <p>Loading paid items...</p>
+  if (loading) return <div className="loading-state"><div className="spinner"></div><p>Loading paid items...</p></div>
+  
   const pendingItems = items.filter((it) => (it.service_status || 'pending') !== 'complete')
   const processedItems = items.filter((it) => (it.service_status || 'pending') === 'complete')
 
   return (
-    <div>
-      <h3>Paid Items (Pending)</h3>
-      {pendingItems.length === 0 && <p>No pending paid items.</p>}
-      <div style={{ display: 'grid', gap: 12 }}>
-        {pendingItems.map((it) => (
-          <div key={it.id} style={{ border: '1px solid #ddd', borderRadius: 10, padding: 12, background: 'rgba(255,255,255,0.92)', color: '#111827' }}>
-            <p><strong>Name:</strong> {it.customer_name}</p>
-            <p><strong>Phone:</strong> {it.phone}</p>
-            <p><strong>Method:</strong> {it.method_used}</p>
-            <p><strong>Transaction Ref:</strong> {it.transaction_reference}</p>
-            {it.order_id && <p><strong>Order ID:</strong> {it.order_id}</p>}
-            <p><strong>Submitted:</strong> {new Date(it.submitted_at).toLocaleString()}</p>
-            <div style={{ marginTop: 8 }}>
-              <strong>Paid Items</strong>
-              <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 6 }}>
-                <thead>
-                  <tr>
-                    <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '4px' }}>Name</th>
-                    <th style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: '4px' }}>Qty</th>
-                    <th style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: '4px' }}>Discount</th>
-                    <th style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: '4px' }}>Price</th>
-                    <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '4px' }}>Install/Service</th>
-                    <th style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: '4px' }}>Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(() => {
-                    let rows = []
-                    if (Array.isArray(it.product_details)) {
-                      rows = it.product_details
-                    } else {
-                      try { rows = JSON.parse(it.product_details || '[]') } catch (e) { rows = [] }
-                    }
-                    if (!Array.isArray(rows)) rows = []
-                    return rows.length > 0 ? rows.map((r, idx) => (
-                      <tr key={`${it.id}-${idx}`}>
-                        <td style={{ padding: '4px' }}>{r.name || '-'}</td>
-                        <td style={{ padding: '4px', textAlign: 'right' }}>{r.quantity ?? 1}</td>
-                        <td style={{ padding: '4px', textAlign: 'right' }}>{r.discount_percent ? `${r.discount_percent}%` : '0%'}</td>
-                        <td style={{ padding: '4px', textAlign: 'right' }}>{fmtMK(r.price)}</td>
-                        <td style={{ padding: '4px' }}>
-                          {r.service_included
-                            ? `Yes (${fmtMK(r.service_fee)})`
-                            : 'No'}
-                        </td>
-                        <td style={{ padding: '4px', textAlign: 'right' }}>{fmtMK(r.total_price)}</td>
-                      </tr>
-                    )) : (
-                      <tr>
-                        <td colSpan="6" style={{ padding: '8px', textAlign: 'center', color: '#666' }}>No paid item details available</td>
-                      </tr>
-                    )
-                  })()}
-                </tbody>
-              </table>
+    <div className="requests-container">
+      <div className="requests-header">
+        <h3>Paid Items</h3>
+        <span className="pending-badge">{pendingItems.length} Pending</span>
+      </div>
+      
+      <div className="requests-section">
+        <h4>Pending Processing</h4>
+        {pendingItems.length === 0 && <p className="empty-state">No pending paid items.</p>}
+        <div className="requests-grid">
+          {pendingItems.map((it) => (
+            <div key={it.id} className="request-card">
+              <div className="request-header">
+                <strong>{it.customer_name}</strong>
+                <span className="status-badge pending">Pending</span>
+              </div>
+              <div className="request-details">
+                <p><strong>Phone:</strong> {it.phone}</p>
+                <p><strong>Method:</strong> {it.method_used}</p>
+                <p><strong>Transaction Ref:</strong> {it.transaction_reference}</p>
+                {it.order_id && <p><strong>Order ID:</strong> {it.order_id}</p>}
+                <p><strong>Submitted:</strong> {new Date(it.submitted_at).toLocaleString()}</p>
+              </div>
+              <div className="request-items">
+                <strong>Items Purchased:</strong>
+                {(() => {
+                  let rows = []
+                  if (Array.isArray(it.product_details)) rows = it.product_details
+                  else { try { rows = JSON.parse(it.product_details || '[]') } catch (e) { rows = [] } }
+                  return rows.map((r, idx) => (
+                    <div key={idx} className="request-item">
+                      <span>{r.name} × {r.quantity}</span>
+                      <span>{fmtMK(r.total_price)}</span>
+                    </div>
+                  ))
+                })()}
+              </div>
+              <div className="request-action">
+                <label>Service Status:</label>
+                <select value={it.service_status || 'pending'} onChange={(e) => onStatusChange(it.id, e.target.value)}>
+                  <option value="pending">Pending</option>
+                  <option value="complete">Complete</option>
+                </select>
+              </div>
             </div>
-            <label>
-              <strong>Service Status: </strong>
-              <select value={it.service_status || 'pending'} onChange={(e) => onStatusChange(it.id, e.target.value)}>
-                <option value="pending">Pending</option>
-                <option value="complete">Complete</option>
-              </select>
-            </label>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
-      <h4 style={{ marginTop: 18 }}>Processed Paid Items</h4>
-      {processedItems.length === 0 && <p>No processed paid items yet.</p>}
-      {processedItems.length > 0 && (
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr>
-              <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Customer</th>
-              <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Phone</th>
-              <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Date Paid</th>
-              <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Date Processed</th>
-            </tr>
-          </thead>
-          <tbody>
-            {processedItems.map((it) => (
-              <tr key={`processed-paid-${it.id}`}>
-                <td style={{ padding: '6px' }}>{it.customer_name}</td>
-                <td style={{ padding: '6px' }}>{it.phone}</td>
-                <td style={{ padding: '6px' }}>{new Date(it.submitted_at).toLocaleString()}</td>
-                <td style={{ padding: '6px' }}>{it.processed_at ? new Date(it.processed_at).toLocaleString() : '-'}</td>
+      <div className="requests-section">
+        <h4>Processed</h4>
+        {processedItems.length === 0 && <p className="empty-state">No processed items yet.</p>}
+        <div className="data-table-wrapper">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>Phone</th>
+                <th>Date Paid</th>
+                <th>Date Processed</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+            </thead>
+            <tbody>
+              {processedItems.map((it) => (
+                <tr key={it.id}>
+                  <td>{it.customer_name}</td>
+                  <td>{it.phone}</td>
+                  <td>{new Date(it.submitted_at).toLocaleString()}</td>
+                  <td>{it.processed_at ? new Date(it.processed_at).toLocaleString() : '-'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   )
 }
@@ -609,103 +648,74 @@ function QuoteRequestsAdmin({ presenter }) {
 
   useEffect(() => { load() }, [])
 
-  if (loading) return <p>Loading quote requests...</p>
+  if (loading) return <div className="loading-state"><div className="spinner"></div><p>Loading quote requests...</p></div>
+  
   const pendingItems = items.filter((it) => (it.status || 'pending') !== 'complete')
   const processedItems = items.filter((it) => (it.status || 'pending') === 'complete')
 
   return (
-    <div>
-      <h3>Quote Requests (Pending)</h3>
-      {pendingItems.length === 0 && <p>No pending quote requests.</p>}
-      <div style={{ display: 'grid', gap: 12 }}>
-        {pendingItems.map((it) => (
-          <div key={it.id} style={{ border: '1px solid #ddd', borderRadius: 10, padding: 12, background: 'rgba(255,255,255,0.92)', color: '#111827' }}>
-            <p><strong>Name:</strong> {it.customer_name}</p>
-            <p><strong>Phone:</strong> {it.phone}</p>
-            <p><strong>Email:</strong> {it.email || '-'}</p>
-            <p><strong>Details:</strong> {it.details || '-'}</p>
-            <p><strong>Requested:</strong> {new Date(it.requested_at).toLocaleString()}</p>
-            <div style={{ marginTop: 8 }}>
-              <strong>Quoted Items</strong>
-              <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 6 }}>
-                <thead>
-                  <tr>
-                    <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '4px' }}>Name</th>
-                    <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '4px' }}>Category</th>
-                    <th style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: '4px' }}>Qty</th>
-                    <th style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: '4px' }}>Price</th>
-                    <th style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: '4px' }}>Discount</th>
-                    <th style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: '4px' }}>Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(() => {
-                    let rows = []
-                    if (Array.isArray(it.product_details)) {
-                      rows = it.product_details
-                    } else {
-                      try { rows = JSON.parse(it.product_details || '[]') } catch (e) { rows = [] }
-                    }
-                    if (!Array.isArray(rows)) rows = []
-                    return rows.length > 0 ? rows.map((r, idx) => (
-                      <tr key={`${it.id}-${idx}`}>
-                        <td style={{ padding: '4px' }}>{r.name || '-'}</td>
-                        <td style={{ padding: '4px' }}>{r.category || '-'}</td>
-                        <td style={{ padding: '4px', textAlign: 'right' }}>{r.quantity ?? 1}</td>
-                        <td style={{ padding: '4px', textAlign: 'right' }}>{fmtMK(r.unit_price)}</td>
-                        <td style={{ padding: '4px', textAlign: 'right' }}>
-                          {r.discount_percent ? `${r.discount_percent}%` : '0%'}
-                        </td>
-                        <td style={{ padding: '4px', textAlign: 'right' }}>{fmtMK(r.line_amount)}</td>
-                      </tr>
-                    )) : (
-                      <tr>
-                        <td colSpan="6" style={{ padding: '8px', textAlign: 'center', color: '#666' }}>
-                          No quoted item details available
-                        </td>
-                      </tr>
-                    )
-                  })()}
-                </tbody>
-              </table>
+    <div className="requests-container">
+      <div className="requests-header">
+        <h3>Quote Requests</h3>
+        <span className="pending-badge">{pendingItems.length} Pending</span>
+      </div>
+      
+      <div className="requests-section">
+        <h4>Pending Quotes</h4>
+        {pendingItems.length === 0 && <p className="empty-state">No pending quote requests.</p>}
+        <div className="requests-grid">
+          {pendingItems.map((it) => (
+            <div key={it.id} className="request-card">
+              <div className="request-header">
+                <strong>{it.customer_name}</strong>
+                <span className="status-badge pending">Pending</span>
+              </div>
+              <div className="request-details">
+                <p><strong>Phone:</strong> {it.phone}</p>
+                <p><strong>Email:</strong> {it.email || '-'}</p>
+                <p><strong>Details:</strong> {it.details || '-'}</p>
+                <p><strong>Requested:</strong> {new Date(it.requested_at).toLocaleString()}</p>
+              </div>
+              <div className="request-action">
+                <label>Status:</label>
+                <select value={it.status} onChange={(e) => onStatusChange(it.id, e.target.value)}>
+                  <option value="pending">Pending</option>
+                  <option value="complete">Complete</option>
+                </select>
+              </div>
             </div>
-            <label>
-              <strong>Status: </strong>
-              <select value={it.status} onChange={(e) => onStatusChange(it.id, e.target.value)}>
-                <option value="pending">Pending</option>
-                <option value="complete">Complete</option>
-              </select>
-            </label>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
-      <h4 style={{ marginTop: 18 }}>Processed Quotations</h4>
-      {processedItems.length === 0 && <p>No processed quotations yet.</p>}
-      {processedItems.length > 0 && (
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr>
-              <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Customer</th>
-              <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Phone</th>
-              <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Email</th>
-              <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Date Requested</th>
-              <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Date Processed</th>
-            </tr>
-          </thead>
-          <tbody>
-            {processedItems.map((it) => (
-              <tr key={`processed-quote-${it.id}`}>
-                <td style={{ padding: '6px' }}>{it.customer_name}</td>
-                <td style={{ padding: '6px' }}>{it.phone}</td>
-                <td style={{ padding: '6px' }}>{it.email || '-'}</td>
-                <td style={{ padding: '6px' }}>{new Date(it.requested_at).toLocaleString()}</td>
-                <td style={{ padding: '6px' }}>{it.processed_at ? new Date(it.processed_at).toLocaleString() : '-'}</td>
+      <div className="requests-section">
+        <h4>Processed Quotations</h4>
+        {processedItems.length === 0 && <p className="empty-state">No processed quotations yet.</p>}
+        <div className="data-table-wrapper">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Date Requested</th>
+                <th>Date Processed</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+            </thead>
+            <tbody>
+              {processedItems.map((it) => (
+                <tr key={it.id}>
+                  <td>{it.customer_name}</td>
+                  <td>{it.phone}</td>
+                  <td>{it.email || '-'}</td>
+                  <td>{new Date(it.requested_at).toLocaleString()}</td>
+                  <td>{it.processed_at ? new Date(it.processed_at).toLocaleString() : '-'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   )
 }
@@ -747,56 +757,55 @@ function ServiceRequestsAdmin({ presenter }) {
 
   useEffect(() => { load() }, [])
 
-  if (loading) return <p>Loading service requests...</p>
+  if (loading) return <div className="loading-state"><div className="spinner"></div><p>Loading service requests...</p></div>
 
   return (
-    <div>
-      <h3>Service Requests</h3>
-      {items.length === 0 && <p>No service requests yet.</p>}
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <thead>
-          <tr>
-            <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Name</th>
-            <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Phone</th>
-            <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Service/Product</th>
-            <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Location</th>
-            <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Preferred Date</th>
-            <th style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: '6px' }}>Fee</th>
-            <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Payment Status</th>
-            <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((it) => (
-            <tr key={it.id}>
-              <td style={{ padding: '6px' }}>{it.customer_name}</td>
-              <td style={{ padding: '6px' }}>{it.phone}</td>
-              <td style={{ padding: '6px' }}>{it.product}</td>
-              <td style={{ padding: '6px' }}>{it.customer_location}</td>
-              <td style={{ padding: '6px' }}>{it.preferred_date ? String(it.preferred_date).slice(0, 10) : '-'}</td>
-              <td style={{ padding: '6px', textAlign: 'right' }}>{fmtMK(it.product_price)}</td>
-              <td style={{ padding: '6px' }}>
-                <select value={it.payment_status || 'pending'} onChange={(e) => onPaymentStatusChange(it.id, e.target.value)}>
-                  <option value="pending">Pending</option>
-                  <option value="paid">Paid</option>
-                </select>
-                {it.payment_status === 'paid' && it.order_id && (
-                  <div style={{ marginTop: '4px', fontSize: '12px', color: '#666' }}>
-                    <strong>Order ID: {it.order_id}</strong><br />
-                    Message: Our staff will call you with confirmation.
-                  </div>
-                )}
-              </td>
-              <td style={{ padding: '6px' }}>
-                <select value={it.status || 'pending'} onChange={(e) => onStatusChange(it.id, e.target.value)}>
-                  <option value="pending">Pending</option>
-                  <option value="complete">Complete</option>
-                </select>
-              </td>
+    <div className="requests-container">
+      <div className="requests-header">
+        <h3>Service Requests</h3>
+        <span className="pending-badge">{items.length} Total</span>
+      </div>
+      
+      <div className="data-table-wrapper">
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Phone</th>
+              <th>Service/Product</th>
+              <th>Location</th>
+              <th>Date</th>
+              <th>Fee</th>
+              <th>Payment Status</th>
+              <th>Status</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {items.map((it) => (
+              <tr key={it.id}>
+                <td>{it.customer_name}</td>
+                <td>{it.phone}</td>
+                <td>{it.product}</td>
+                <td>{it.customer_location}</td>
+                <td>{it.preferred_date ? String(it.preferred_date).slice(0, 10) : '-'}</td>
+                <td className="text-right">{fmtMK(it.product_price)}</td>
+                <td>
+                  <select value={it.payment_status || 'pending'} onChange={(e) => onPaymentStatusChange(it.id, e.target.value)} className="status-select">
+                    <option value="pending">Pending</option>
+                    <option value="paid">Paid</option>
+                  </select>
+                </td>
+                <td>
+                  <select value={it.status || 'pending'} onChange={(e) => onStatusChange(it.id, e.target.value)} className="status-select">
+                    <option value="pending">Pending</option>
+                    <option value="complete">Complete</option>
+                  </select>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }
@@ -820,28 +829,32 @@ function NewsletterAdmin({ presenter }) {
 
   useEffect(() => { load() }, [])
 
-  if (loading) return <p>Loading newsletter subscribers...</p>
+  if (loading) return <div className="loading-state"><div className="spinner"></div><p>Loading subscribers...</p></div>
 
   return (
-    <div>
-      <h3>Newsletter Subscribers</h3>
-      {subscribers.length === 0 && <p>No subscribers yet.</p>}
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <thead>
-          <tr>
-            <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Email</th>
-            <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px' }}>Subscribed At</th>
-          </tr>
-        </thead>
-        <tbody>
-          {subscribers.map((sub) => (
-            <tr key={sub.id}>
-              <td style={{ padding: '6px' }}>{sub.email}</td>
-              <td style={{ padding: '6px' }}>{new Date(sub.subscribed_at).toLocaleString()}</td>
+    <div className="data-table-container">
+      <div className="data-table-header">
+        <h3>Newsletter Subscribers</h3>
+        <span>{subscribers.length} subscribers</span>
+      </div>
+      <div className="data-table-wrapper">
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Subscribed At</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {subscribers.map((sub) => (
+              <tr key={sub.id}>
+                <td>{sub.email}</td>
+                <td>{new Date(sub.subscribed_at).toLocaleString()}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }
@@ -904,34 +917,59 @@ function ServicesAdmin({ presenter }) {
   }
 
   return (
-    <div className="admin-grid">
-      <div className="admin-list">
-        <h3>Services</h3>
-        {services.map((s) => (
-          <div key={s.id} style={{ border: '1px solid #ddd', borderRadius: 10, padding: 12, background: 'rgba(255,255,255,0.92)', color: '#111827', marginBottom: 10 }}>
-            {s.image_url && <img src={s.image_url} alt={s.name} style={{ width: '100%', maxHeight: 160, objectFit: 'cover', borderRadius: 8, marginBottom: 8 }} />}
-            <p><strong>{s.name}</strong></p>
-            <p>{s.description || '-'}</p>
-            <p><strong>{fmtMK(s.price)}</strong></p>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button type="button" onClick={() => startEdit(s)}>Edit</button>
-              <button type="button" onClick={() => del(s.id)}>Delete</button>
-            </div>
+    <div className="admin-services-modern">
+      <div className="admin-grid-modern">
+        <div className="admin-list-modern">
+          <div className="admin-list-header">
+            <h3>Services</h3>
+            <span>{services.length} services</span>
           </div>
-        ))}
-      </div>
-      <div className="admin-form">
-        <h4>{editing ? 'Edit' : 'Create'} Service</h4>
-        <form onSubmit={submit}>
-          <input placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-          <textarea placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-          <input type="file" accept="image/*" onChange={(e) => setSelectedFile(e.target.files?.[0] || null)} />
-          {selectedFile && <div className="thumb"><img src={URL.createObjectURL(selectedFile)} alt="service preview" /></div>}
-          {form.image_url && !selectedFile && <div className="thumb"><img src={form.image_url} alt="service preview" /></div>}
-          <input type="number" step="0.01" placeholder="Price" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} />
-          <button type="submit">Save Service</button>
-          {editing && <button type="button" onClick={() => { setEditing(null); setForm({ name: '', description: '', image_url: '', price: '' }); setSelectedFile(null) }}>Cancel</button>}
-        </form>
+          <div className="services-list">
+            {services.map((s) => (
+              <div key={s.id} className="service-item-admin">
+                {s.image_url && <img src={s.image_url} alt={s.name} className="service-image" />}
+                <div className="service-info">
+                  <strong>{s.name}</strong>
+                  <p>{s.description || '-'}</p>
+                  <div className="service-price">{fmtMK(s.price)}</div>
+                  <div className="service-actions">
+                    <button type="button" onClick={() => startEdit(s)}>Edit</button>
+                    <button type="button" onClick={() => del(s.id)}>Delete</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="admin-form-modern">
+          <div className="form-header">
+            <h4>{editing ? 'Edit Service' : 'Create New Service'}</h4>
+          </div>
+          <form onSubmit={submit}>
+            <div className="form-group-admin">
+              <label>Service Name</label>
+              <input placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+            </div>
+            <div className="form-group-admin">
+              <label>Description</label>
+              <textarea placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows="3" />
+            </div>
+            <div className="form-group-admin">
+              <label>Service Image</label>
+              <input type="file" accept="image/*" onChange={(e) => setSelectedFile(e.target.files?.[0] || null)} />
+              {selectedFile && <div className="image-preview"><img src={URL.createObjectURL(selectedFile)} alt="service preview" /></div>}
+              {form.image_url && !selectedFile && <div className="image-preview"><img src={form.image_url} alt="service preview" /></div>}
+            </div>
+            <div className="form-group-admin">
+              <label>Price (MWK)</label>
+              <input type="number" step="0.01" placeholder="Price" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} />
+            </div>
+            <div className="form-actions-admin">
+              <button type="submit" className="save-btn">Save Service</button>
+              {editing && <button type="button" className="cancel-btn" onClick={() => { setEditing(null); setForm({ name: '', description: '', image_url: '', price: '' }); setSelectedFile(null) }}>Cancel</button>}
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   )
@@ -956,73 +994,77 @@ function QuotationReport({ presenter }) {
 
   useEffect(() => { load() }, [])
 
-  if (loading) return <p>Loading quotation report...</p>
-  if (!report) return <p>Failed to load quotation report</p>
+  if (loading) return <div className="loading-state"><div className="spinner"></div><p>Loading quotation report...</p></div>
+  if (!report) return <p className="error-state">Failed to load quotation report</p>
 
   const completionRate = report.totalQuotes > 0 ? ((report.byStatus?.complete || 0) / report.totalQuotes * 100).toFixed(1) : 0
 
   return (
-    <div style={{ padding: '20px 0' }}>
-      <h3 style={{ fontSize: '1.8rem', marginBottom: 16, fontWeight: 700 }}>📝 Quotation Report</h3>
-      
-      {/* Key Metrics Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 24 }}>
-        {/* Total Quotes */}
-        <div style={{ background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(109, 40, 217, 0.1))', border: '1px solid rgba(139, 92, 246, 0.3)', borderRadius: 12, padding: 20, textAlign: 'center' }}>
-          <div style={{ fontSize: '0.9rem', color: '#a1a1a1', marginBottom: 8 }}>Total Quotations</div>
-          <div style={{ fontSize: '1.8rem', fontWeight: 700, color: '#8b5cf6' }}>{report.totalQuotes}</div>
-        </div>
-
-        {/* Pending Quotes */}
-        <div style={{ background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.15), rgba(234, 88, 12, 0.1))', border: '1px solid rgba(249, 115, 22, 0.3)', borderRadius: 12, padding: 20, textAlign: 'center' }}>
-          <div style={{ fontSize: '0.9rem', color: '#a1a1a1', marginBottom: 8 }}>Pending</div>
-          <div style={{ fontSize: '1.8rem', fontWeight: 700, color: '#f97316' }}>{report.byStatus?.pending ?? 0}</div>
-        </div>
-
-        {/* Completed Quotes */}
-        <div style={{ background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(22, 163, 74, 0.1))', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: 12, padding: 20, textAlign: 'center' }}>
-          <div style={{ fontSize: '0.9rem', color: '#a1a1a1', marginBottom: 8 }}>Completed</div>
-          <div style={{ fontSize: '1.8rem', fontWeight: 700, color: '#22c55e' }}>{report.byStatus?.complete ?? 0}</div>
-        </div>
-
-        {/* Completion Rate */}
-        <div style={{ background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(37, 99, 235, 0.1))', border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: 12, padding: 20, textAlign: 'center' }}>
-          <div style={{ fontSize: '0.9rem', color: '#a1a1a1', marginBottom: 8 }}>Completion Rate</div>
-          <div style={{ fontSize: '1.8rem', fontWeight: 700, color: '#3b82f6' }}>{completionRate}%</div>
-        </div>
+    <div className="report-container-modern">
+      <div className="report-header">
+        <h3>📝 Quotation Report</h3>
+        <p>Quote request analytics and trends</p>
       </div>
 
-      {/* Peak Activity */}
-      <div style={{ background: 'rgba(200, 16, 46, 0.08)', border: '1px solid rgba(200, 16, 46, 0.2)', borderRadius: 12, padding: 16, marginBottom: 24 }}>
-        <h4 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: 12 }}>📊 Peak Activity</h4>
-        <div>
-          <div style={{ fontSize: '0.85rem', color: '#a1a1a1', marginBottom: 4 }}>Peak Quote Day</div>
-          <div style={{ fontSize: '1.1rem', fontWeight: 600, color: '#f5f5f5' }}>
-            {report.peakDay ? `${report.peakDay.date} (${report.peakDay.count} quotes)` : 'N/A'}
+      <div className="metrics-grid">
+        <div className="metric-card total-quotes">
+          <div className="metric-icon">📋</div>
+          <div className="metric-info">
+            <div className="metric-label">Total Quotations</div>
+            <div className="metric-value">{report.totalQuotes}</div>
+          </div>
+        </div>
+
+        <div className="metric-card pending-quotes">
+          <div className="metric-icon">⏳</div>
+          <div className="metric-info">
+            <div className="metric-label">Pending</div>
+            <div className="metric-value">{report.byStatus?.pending ?? 0}</div>
+          </div>
+        </div>
+
+        <div className="metric-card completed-quotes">
+          <div className="metric-icon">✅</div>
+          <div className="metric-info">
+            <div className="metric-label">Completed</div>
+            <div className="metric-value">{report.byStatus?.complete ?? 0}</div>
+          </div>
+        </div>
+
+        <div className="metric-card completion-rate">
+          <div className="metric-icon">📊</div>
+          <div className="metric-info">
+            <div className="metric-label">Completion Rate</div>
+            <div className="metric-value">{completionRate}%</div>
           </div>
         </div>
       </div>
 
-      {/* Daily Quote Trends */}
-      <div>
-        <h4 style={{ fontSize: '1.3rem', fontWeight: 600, marginBottom: 16 }}>📈 Daily Quote Trends</h4>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 10, background: 'rgba(20, 20, 20, 0.5)', borderRadius: 8 }}>
+      <div className="highlights-card">
+        <h4>📊 Peak Activity</h4>
+        <div>
+          <div className="highlight-label">Peak Quote Day</div>
+          <div className="highlight-value">{report.peakDay ? `${report.peakDay.date} (${report.peakDay.count} quotes)` : 'N/A'}</div>
+        </div>
+      </div>
+
+      <div className="data-table-container">
+        <h4>📈 Daily Quote Trends</h4>
+        <div className="data-table-wrapper">
+          <table className="data-table">
             <thead>
-              <tr style={{ background: 'rgba(200, 16, 46, 0.1)', borderBottom: '2px solid rgba(200, 16, 46, 0.3)' }}>
-                <th style={{ textAlign: 'left', padding: '12px', fontWeight: 600, color: '#f5f5f5' }}>Date</th>
-                <th style={{ textAlign: 'right', padding: '12px', fontWeight: 600, color: '#f5f5f5' }}>Quote Count</th>
-                <th style={{ textAlign: 'right', padding: '12px', fontWeight: 600, color: '#f5f5f5' }}>% of Total</th>
+              <tr>
+                <th>Date</th>
+                <th className="text-right">Quote Count</th>
+                <th className="text-right">% of Total</th>
               </tr>
             </thead>
             <tbody>
               {(report.daily || []).map((d, idx) => (
-                <tr key={d.date} style={{ borderBottom: '1px solid rgba(200, 16, 46, 0.1)', background: idx % 2 === 0 ? 'rgba(200, 16, 46, 0.05)' : 'transparent' }}>
-                  <td style={{ padding: '12px', color: '#f5f5f5' }}>{d.date}</td>
-                  <td style={{ padding: '12px', textAlign: 'right', color: '#a1a1a1', fontWeight: 600 }}>{d.count}</td>
-                  <td style={{ padding: '12px', textAlign: 'right', color: '#8b5cf6', fontWeight: 600 }}>
-                    {((d.count / report.totalQuotes) * 100).toFixed(1)}%
-                  </td>
+                <tr key={d.date}>
+                  <td>{d.date}</td>
+                  <td className="text-right">{d.count}</td>
+                  <td className="text-right percentage-value">{((d.count / report.totalQuotes) * 100).toFixed(1)}%</td>
                 </tr>
               ))}
             </tbody>
@@ -1059,45 +1101,53 @@ export default function Admin({ token, onLogout, onAuth, presenter }) {
   }
 
   if (!auth) return <Login onLogin={handleLogin} presenter={presenter} />
+  
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2>Admin Dashboard</h2>
-        <div><button onClick={logout}>Logout</button></div>
+    <div className="admin-dashboard-modern">
+      <div className="admin-header-modern">
+        <div className="admin-title">
+          <h2>Admin Dashboard</h2>
+          <p>Manage your store, products, and orders</p>
+        </div>
+        <button onClick={logout} className="logout-btn">Logout</button>
       </div>
 
-      {/* Settings Tab Group */}
-      <div style={{ marginBottom: 16 }}>
-        <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#a1a1a1', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>⚙️ Settings</div>
-        <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
-          <button className={view === 'products' ? 'primary' : 'ghost'} onClick={() => setView('products')}>Products</button>
-          <button className={view === 'services' ? 'primary' : 'ghost'} onClick={() => setView('services')}>Services</button>
-          <button className={view === 'categories' ? 'primary' : 'ghost'} onClick={() => setView('categories')}>Categories</button>
-          <button className={view === 'newsletter' ? 'primary' : 'ghost'} onClick={() => setView('newsletter')}>Newsletter</button>
+      <div className="admin-tabs-modern">
+        {/* Settings Tab Group */}
+        <div className="tab-group">
+          <div className="tab-group-label">⚙️ Settings</div>
+          <div className="tab-buttons">
+            <button className={view === 'products' ? 'tab-active' : 'tab-inactive'} onClick={() => setView('products')}>Products</button>
+            <button className={view === 'services' ? 'tab-active' : 'tab-inactive'} onClick={() => setView('services')}>Services</button>
+            <button className={view === 'categories' ? 'tab-active' : 'tab-inactive'} onClick={() => setView('categories')}>Categories</button>
+            <button className={view === 'newsletter' ? 'tab-active' : 'tab-inactive'} onClick={() => setView('newsletter')}>Newsletter</button>
+          </div>
+        </div>
+
+        {/* Reports & Orders Tab Group */}
+        <div className="tab-group">
+          <div className="tab-group-label">📊 Reports & Orders</div>
+          <div className="tab-buttons">
+            <button className={view === 'sales' ? 'tab-active' : 'tab-inactive'} onClick={() => setView('sales')}>Sales Report</button>
+            <button className={view === 'quote-report' ? 'tab-active' : 'tab-inactive'} onClick={() => setView('quote-report')}>Quotation Report</button>
+            <button className={view === 'paid' ? 'tab-active' : 'tab-inactive'} onClick={() => setView('paid')}>Paid Items</button>
+            <button className={view === 'quotes' ? 'tab-active' : 'tab-inactive'} onClick={() => setView('quotes')}>Quote Requests</button>
+            <button className={view === 'service-requests' ? 'tab-active' : 'tab-inactive'} onClick={() => setView('service-requests')}>Service Requests</button>
+          </div>
         </div>
       </div>
 
-      {/* Reports & Orders Tab Group */}
-      <div>
-        <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#a1a1a1', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>📊 Reports & Orders</div>
-        <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
-          <button className={view === 'sales' ? 'primary' : 'ghost'} onClick={() => setView('sales')}>Sales Report</button>
-          <button className={view === 'quote-report' ? 'primary' : 'ghost'} onClick={() => setView('quote-report')}>Quotation Report</button>
-          <button className={view === 'paid' ? 'primary' : 'ghost'} onClick={() => setView('paid')}>Paid Items</button>
-          <button className={view === 'quotes' ? 'primary' : 'ghost'} onClick={() => setView('quotes')}>Quote Requests</button>
-          <button className={view === 'service-requests' ? 'primary' : 'ghost'} onClick={() => setView('service-requests')}>Service Requests</button>
-        </div>
+      <div className="admin-content-modern">
+        {view === 'products' && <ProductsAdmin presenter={presenter} token={token} />}
+        {view === 'services' && <ServicesAdmin presenter={presenter} />}
+        {view === 'categories' && <CategoriesAdmin presenter={presenter} />}
+        {view === 'sales' && <SalesReport presenter={presenter} />}
+        {view === 'quote-report' && <QuotationReport presenter={presenter} />}
+        {view === 'paid' && <PaidItems presenter={presenter} />}
+        {view === 'quotes' && <QuoteRequestsAdmin presenter={presenter} />}
+        {view === 'service-requests' && <ServiceRequestsAdmin presenter={presenter} />}
+        {view === 'newsletter' && <NewsletterAdmin presenter={presenter} />}
       </div>
-
-      {view === 'products' && <ProductsAdmin presenter={presenter} token={token} />}
-      {view === 'services' && <ServicesAdmin presenter={presenter} />}
-      {view === 'categories' && <CategoriesAdmin presenter={presenter} />}
-      {view === 'sales' && <SalesReport presenter={presenter} />}
-      {view === 'quote-report' && <QuotationReport presenter={presenter} />}
-      {view === 'paid' && <PaidItems presenter={presenter} />}
-      {view === 'quotes' && <QuoteRequestsAdmin presenter={presenter} />}
-      {view === 'service-requests' && <ServiceRequestsAdmin presenter={presenter} />}
-      {view === 'newsletter' && <NewsletterAdmin presenter={presenter} />}
     </div>
   )
 }

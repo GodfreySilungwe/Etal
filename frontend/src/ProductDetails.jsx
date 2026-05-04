@@ -6,81 +6,123 @@ const fmtMK = (val) => {
   return `MK ${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
-export default function ProductDetails({ id, onBack, onBuy, onAddToCart, presenter }){
-  const [p, setP] = useState(null)
+export default function ProductDetails({ id, onBack, onBuy, onAddToCart, presenter }) {
+  const [product, setProduct] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
-  useEffect(()=>{
+  useEffect(() => {
     let mounted = true
-    async function load(){
-      if(!id) return
+    async function load() {
+      if (!id) return
       setLoading(true)
       setError(null)
-      try{
+      try {
         const r = await presenter.getProductById(id)
-        if(mounted) setP(r)
-      }catch(e){
+        if (mounted) setProduct(r)
+      } catch (e) {
         console.error('Failed to load product', e)
-        if(mounted) setError(e.message || 'Failed to load product')
-      }finally{
-        if(mounted) setLoading(false)
+        if (mounted) setError(e.message || 'Failed to load product')
+      } finally {
+        if (mounted) setLoading(false)
       }
     }
     load()
-    return ()=>{ mounted = false }
-  },[id, presenter])
+    return () => { mounted = false }
+  }, [id, presenter])
 
-  if(loading) return <div>Loading product...</div>
-  if(error) return (
-    <div>
-      <button onClick={onBack}>Back</button>
-      <h3>Error</h3>
+  if (loading) return (
+    <div className="details-loading">
+      <div className="spinner"></div>
+      <p>Loading product details...</p>
+    </div>
+  )
+  
+  if (error) return (
+    <div className="details-error">
+      <button onClick={onBack} className="back-btn-modern">← Back</button>
+      <h3>Error Loading Product</h3>
       <p>{error}</p>
     </div>
   )
-  if(!p) return (
-    <div>
-      <button onClick={onBack}>Back</button>
+  
+  if (!product) return (
+    <div className="details-not-found">
+      <button onClick={onBack} className="back-btn-modern">← Back</button>
       <p>Product not found.</p>
     </div>
   )
 
+  const hasDiscount = Number(product.discount_percent) > 0
+  const stock = Number(product.stock ?? 0)
+  const stockClass = stock <= 0 ? 'out-of-stock' : stock <= 5 ? 'low-stock' : 'in-stock'
+
   return (
-    <div className="product-details">
-      <button onClick={onBack}>Back</button>
-      <div className="product-details-layout">
-        <div className="product-details-left">
-          <h2>{p.name}</h2>
-          <p>Category: {p.category}</p>
-          <div className="product-description-box">
-            <p>{p.description}</p>
+    <div className="product-details-modern">
+      <button onClick={onBack} className="back-btn-modern">← Back to Products</button>
+      
+      <div className="details-layout">
+        <div className="details-left">
+          <div className="details-badge">{product.category || 'Electronics'}</div>
+          <h1 className="details-title">{product.name}</h1>
+          
+          <div className="details-description-box">
+            <h3>Description</h3>
+            <p>{product.description}</p>
           </div>
-          {p.discount_percent > 0 ? (
-            <div>
-              <p style={{ textDecoration: 'line-through', color: 'var(--danger)', margin: 0 }}>Original: {fmtMK(p.original_price)}</p>
-              <p style={{ fontWeight: 'bold', color: 'var(--success)', margin: '4px 0 0' }}>Now: {fmtMK(p.price)} <span style={{ color: 'var(--success)' }}>({p.discount_percent}% off)</span></p>
-            </div>
-          ) : (
-            <p style={{ fontWeight: 'bold', color: 'var(--success)' }}>Price: {fmtMK(p.price)}</p>
-          )}
-          <div style={{ marginTop: 12, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          
+          <div className="details-price-section">
+            {hasDiscount ? (
+              <>
+                <div className="price-row">
+                  <span className="price-label">Original Price:</span>
+                  <span className="old-price-details">{fmtMK(product.original_price)}</span>
+                </div>
+                <div className="price-row highlight">
+                  <span className="price-label">Discounted Price:</span>
+                  <span className="new-price-details">{fmtMK(product.price)}</span>
+                  <span className="discount-percent-details">({product.discount_percent}% OFF)</span>
+                </div>
+                <div className="savings-details">
+                  🎉 You save: {fmtMK(Math.max(Number(product.original_price) - Number(product.price), 0))}
+                </div>
+              </>
+            ) : (
+              <div className="price-row">
+                <span className="price-label">Price:</span>
+                <span className="new-price-details">{fmtMK(product.price)}</span>
+              </div>
+            )}
+          </div>
+          
+          <div className={`stock-status-details ${stockClass}`}>
+            {stock <= 0 ? '❌ Out of Stock' : stock <= 5 ? `⚠️ Low Stock: Only ${stock} left` : `✓ In Stock: ${stock} units`}
+          </div>
+          
+          <div className="details-actions">
             <button
-              className="buy-like-btn"
-              onClick={(e) => onBuy && onBuy(p, { sourceEl: e.currentTarget, imageUrl: p.image_url })}
+              className="buy-btn-details"
+              onClick={(e) => onBuy && onBuy(product, { sourceEl: e.currentTarget, imageUrl: product.image_url })}
+              disabled={stock <= 0}
             >
-              Buy
+              Buy Now
             </button>
             <button
-              className="add-to-cart-btn"
-              onClick={(e) => onAddToCart && onAddToCart(p, { sourceEl: e.currentTarget, imageUrl: p.image_url })}
+              className="cart-btn-details"
+              onClick={(e) => onAddToCart && onAddToCart(product, { sourceEl: e.currentTarget, imageUrl: product.image_url })}
+              disabled={stock <= 0}
             >
               Add to Cart
             </button>
           </div>
         </div>
-        <div className="product-details-right">
-          {p.image_url && <img src={p.image_url} alt={p.name} style={{maxWidth:320, width: '100%', borderRadius: '12px'}} />}
+        
+        <div className="details-right">
+          {product.image_url && (
+            <div className="product-image-container">
+              <img src={product.image_url} alt={product.name} />
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -14,57 +14,11 @@ import AboutUs from './AboutUs'
 import Checkout from './Checkout'
 import ProductCard from './ProductCard'
 import QuoteRequest from './QuoteRequest'
-
-const fmtMK = (val) => {
-  const n = Number(val)
-  if (val == null || val === '' || Number.isNaN(n)) return ''
-  return `MK ${n.toFixed(2)}`
-}
-
-const API_BASE_URL = 'https://xw9zhawaqf.execute-api.us-east-1.amazonaws.com'
+import Home from './HomePage'
+import NewsletterSubscription from './NewsletterSubscription'
+import './styles.css'
 
 const LOGO_URL = 'https://etalbackendbusketfileuploads.s3.us-east-1.amazonaws.com/uploads/Log.png'
-
-function NewsletterSubscription({ presenter }) {
-  const [email, setEmail] = useState('')
-  const [loading, setLoading] = useState(false)
-
-  async function subscribe(e) {
-    e.preventDefault()
-    if (!email || !email.includes('@')) return alert('Please enter a valid email')
-    setLoading(true)
-    try {
-      await presenter.subscribeNewsletter(email)
-      alert('Subscribed successfully!')
-      setEmail('')
-    } catch (err) {
-      console.error(err)
-      alert('Failed to subscribe. Please try again.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  return (
-    <form onSubmit={subscribe} style={{ maxWidth: '400px', margin: '0 auto' }}>
-      <input
-        type="email"
-        placeholder="Enter your email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        style={{ width: '100%', padding: '10px', marginBottom: '10px', borderRadius: '5px', border: '1px solid #ccc' }}
-        required
-      />
-      <button
-        type="submit"
-        disabled={loading}
-        style={{ width: '100%', padding: '10px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
-      >
-        {loading ? 'Subscribing...' : 'Subscribe'}
-      </button>
-    </form>
-  )
-}
 
 function decodeJWT(token) {
   try {
@@ -85,131 +39,21 @@ function Nav({ setView, cartCount, userRole, token, presenter }) {
           alt="ETAL Logo"
           className="desktop-only"
           style={{ height: '40px', marginRight: '20px', cursor: 'pointer' }}
-          onClick={() => { console.log('Nav: logo -> home'); setView('home') }}
+          onClick={() => { setView('home') }}
         />
-        <button onClick={() => { console.log('Nav: home'); setView('home') }}>Home</button>
-        <button onClick={() => { console.log('Nav: products'); setView('products') }}>Products</button>
-        <button onClick={() => { console.log('Nav: services'); setView('services') }}>Services</button>
-        <button className="desktop-only" onClick={() => { console.log('Nav: about'); setView('about') }}>About Us</button>
-
-        {!token && <button className="desktop-only" onClick={() => { console.log('Nav: login'); setView('admin') }}>Login</button>}
-        {userRole === 'admin' && <button className="desktop-only" onClick={() => { console.log('Nav: admin'); setView('admin') }}>Admin</button>}
+        <button onClick={() => { setView('home') }}>Home</button>
+        <button onClick={() => { setView('products') }}>Products</button>
+        <button onClick={() => { setView('services') }}>Services</button>
+        <button className="desktop-only" onClick={() => { setView('about') }}>About Us</button>
+        {!token && <button className="desktop-only" onClick={() => { setView('admin') }}>Login</button>}
+        {userRole === 'admin' && <button className="desktop-only" onClick={() => { setView('admin') }}>Admin</button>}
       </div>
-
       <div className="nav-group" style={{ justifyContent: 'flex-end', alignItems: 'center' }}>
-        <button id="cart-nav-button" onClick={() => { console.log('Nav: cart'); setView('cart') }}>
-          Cart{cartCount ? ` (${cartCount})` : ''}
+        <button id="cart-nav-button" onClick={() => { setView('cart') }}>
+          🛒 Cart{cartCount ? ` (${cartCount})` : ''}
         </button>
       </div>
     </nav>
-  )
-}
-
-  function Home({ presenter, onSelect, onAddToCart, onAddToCartOnly, onRequestInstallation, onRequestDelivery }) {
-  const [categories, setCategories] = useState([])
-  const [products, setProducts] = useState([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    async function load() {
-      setLoading(true)
-      try {
-        const [cats, prods] = await Promise.all([
-          presenter.getCategories(),
-          presenter.getProducts()
-        ])
-        setCategories(cats)
-        setProducts(prods)
-      } catch (e) {
-        console.error(e)
-      } finally {
-        setLoading(false)
-      }
-    }
-    load()
-  }, [presenter])
-
-  // Group products by category
-  const productsByCategory = categories.reduce((acc, cat) => {
-    acc[cat.id] = products.filter(p => p.category_id === cat.id)
-    return acc
-  }, {})
-
-  return (
-    <div>
-      <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-        <h1 className="rainbow-text">Welcome to xxxx Shop</h1>
-        <p className="home-tagline">Your Trusted Partner for Quality - Your Product here - Opposite - Your Location</p>
-      </div>
-
-      {loading ? (
-        <p>Loading products...</p>
-      ) : (() => {
-        const categoryCards = categories
-          .filter(cat => productsByCategory[cat.id] && productsByCategory[cat.id].length > 0)
-          .map(cat => (
-            <div key={cat.id} style={{ marginBottom: '40px' }}>
-              <h2 className="home-category-title">{cat.name}</h2>
-              <div className="grid">
-                {productsByCategory[cat.id].map(p => (
-                  <ProductCard
-                    key={p.id}
-                    product={p}
-                    onSelect={onSelect}
-                    onBuy={onAddToCart}
-                    onAddToCart={onAddToCartOnly}
-                  />
-                ))}
-              </div>
-            </div>
-          ))
-
-        if (categoryCards.length > 0) {
-          return categoryCards
-        }
-
-        return (
-          <div style={{ marginBottom: '40px' }}>
-            <h2 className="home-category-title">All Products</h2>
-            <div className="grid">
-              {products.map(p => (
-                <ProductCard
-                  key={p.id}
-                  product={p}
-                  onSelect={onSelect}
-                  onBuy={onAddToCart}
-                  onAddToCart={onAddToCartOnly}
-                />
-              ))}
-            </div>
-          </div>
-        )
-      })()}
-
-      {/* Newsletter Subscription */}
-      <div style={{ textAlign: 'center', marginTop: '40px', padding: '20px', backgroundColor: '#f9f9f9', borderRadius: '10px' }}>
-        <h2>Subscribe to Our Newsletter</h2>
-        <p>Stay updated with the latest products and offers!</p>
-        <div style={{ margin: '10px 0', padding: '10px', backgroundColor: '#fff', borderRadius: '10px', border: '1px solid #ddd' }}>
-          <p style={{ margin: 0, fontWeight: '700', color: '#333' }}>Our Help Desk</p>
-          <p style={{ margin: '6px 0 0', color: '#555' }}>For inquiries call or WhatsApp: <strong style={{ color: '#000' }}>0995719915</strong></p>
-        </div>
-        <NewsletterSubscription presenter={presenter} />
-      </div>
-
-    </div>
-  )
-}
-
-// Products view is provided by `frontend/src/Products.jsx` (presenter-based)
-
-function Contact() {
-  return (
-    <div>
-      <h2>Contact</h2>
-      <p>Address: Opposite Central Hospital</p>
-      <p>Phone: +265 995 718 815</p>
-    </div>
   )
 }
 
@@ -219,8 +63,7 @@ export default function App() {
   const [userRole, setUserRole] = useState(null)
   const [selectedProductId, setSelectedProductId] = useState(null)
   const [cart, setCart] = useState(() => {
-    const storedCart = JSON.parse(localStorage.getItem('etal_cart')||'[]')
-    // Ensure all items have quantity property for backward compatibility
+    const storedCart = JSON.parse(localStorage.getItem('etal_cart') || '[]')
     return storedCart.map(item => ({ ...item, quantity: item.quantity || 1 }))
   })
   const [requestContext, setRequestContext] = useState(null)
@@ -237,12 +80,11 @@ export default function App() {
     setView('delivery')
   }
 
-  useEffect(()=>{
+  useEffect(() => {
     console.log('App mounted. initial view=', view)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[])
+  }, [])
 
-  useEffect(()=>{ console.log('App view changed ->', view) }, [view])
+  useEffect(() => { console.log('App view changed ->', view) }, [view])
 
   useEffect(() => {
     const onRequestInstallation = (e) => {
@@ -261,13 +103,11 @@ export default function App() {
     }
   }, [])
 
-  // ensure axios header uses stored token
-  useEffect(()=>{
+  useEffect(() => {
     const t = localStorage.getItem('etal_token')
-    if(t) axios.defaults.headers.common['Authorization'] = `Bearer ${t}`
+    if (t) axios.defaults.headers.common['Authorization'] = `Bearer ${t}`
   }, [])
 
-  // decode token to get user role
   useEffect(() => {
     if (token) {
       const decoded = decodeJWT(token)
@@ -283,11 +123,9 @@ export default function App() {
       if (typeof window === 'undefined') return
       const AudioContext = window.AudioContext || window.webkitAudioContext
       if (!AudioContext) return
-
       if (!audioCtx) {
         audioCtx = new AudioContext()
       }
-
       const osc = audioCtx.createOscillator()
       const gain = audioCtx.createGain()
       osc.type = 'triangle'
@@ -301,22 +139,18 @@ export default function App() {
     }
   })()
 
-  function addToCart(product){
+  function addToCart(product) {
     const existingIndex = cart.findIndex(item => item.id === product.id)
     let next
-    
     if (existingIndex >= 0) {
-      // Item already exists, increment quantity
-      next = cart.map((item, index) => 
-        index === existingIndex 
+      next = cart.map((item, index) =>
+        index === existingIndex
           ? { ...item, quantity: (item.quantity || 1) + 1 }
           : item
       )
     } else {
-      // New item, add with quantity 1
       next = [...cart, { ...product, original_price: product.original_price, discount_percent: product.discount_percent, quantity: 1 }]
     }
-    
     setCart(next)
     try {
       localStorage.setItem('etal_cart', JSON.stringify(next))
@@ -340,27 +174,22 @@ export default function App() {
   function animateAddToCart({ sourceEl, imageUrl } = {}) {
     const cartButton = document.getElementById('cart-nav-button')
     if (!sourceEl || !cartButton) return
-
     const sourceRect = sourceEl.getBoundingClientRect()
     const cartRect = cartButton.getBoundingClientRect()
     const fly = document.createElement('div')
     fly.className = 'cart-fly'
     if (imageUrl) fly.style.backgroundImage = `url(${imageUrl})`
-
     const startX = sourceRect.left + (sourceRect.width / 2) - 24
     const startY = sourceRect.top + (sourceRect.height / 2) - 24
     const endX = cartRect.left + (cartRect.width / 2) - 24
     const endY = cartRect.top + (cartRect.height / 2) - 24
-
     fly.style.left = `${startX}px`
     fly.style.top = `${startY}px`
     document.body.appendChild(fly)
-
     requestAnimationFrame(() => {
       fly.style.transform = `translate(${endX - startX}px, ${endY - startY}px) scale(0.35)`
       fly.style.opacity = '0.2'
     })
-
     fly.addEventListener('transitionend', () => {
       fly.remove()
       cartButton.classList.add('cart-bump')
@@ -368,58 +197,126 @@ export default function App() {
     }, { once: true })
   }
 
-  function removeFromCart(idx){
+  function removeFromCart(idx) {
     const item = cart[idx]
     let next
-    
     if (item.quantity > 1) {
-      // Decrement quantity
-      next = cart.map((cartItem, index) => 
-        index === idx 
+      next = cart.map((cartItem, index) =>
+        index === idx
           ? { ...cartItem, quantity: cartItem.quantity - 1 }
           : cartItem
       )
     } else {
-      // Remove item if quantity is 1
-      next = cart.filter((_,i)=>i!==idx)
+      next = cart.filter((_, i) => i !== idx)
     }
-    
     setCart(next)
     localStorage.setItem('etal_cart', JSON.stringify(next))
   }
 
-  function updateCartItem(idx, updates){
+  function updateCartItem(idx, updates) {
     const next = cart.map((item, i) => i === idx ? { ...item, ...updates } : item)
     setCart(next)
     localStorage.setItem('etal_cart', JSON.stringify(next))
   }
 
-  function checkout(){
-    // cart clearing is handled after presenter checkout succeeds in Cart
+  function checkout() {
     setCart([])
     localStorage.removeItem('etal_cart')
   }
 
   return (
     <div className="app">
-      <Nav setView={setView} cartCount={cart.reduce((total, item) => total + (item.quantity || 1), 0)} userRole={userRole} token={token} presenter={presenter} />
+      <Nav 
+        setView={setView} 
+        cartCount={cart.reduce((total, item) => total + (item.quantity || 1), 0)} 
+        userRole={userRole} 
+        token={token} 
+        presenter={presenter} 
+      />
       <ErrorBoundary>
         <main>
-          {view === 'home' && <Home presenter={presenter} onSelect={(id)=>{ setSelectedProductId(id); setView('details') }} onAddToCart={handleBuy} onAddToCartOnly={handleAddToCart} onRequestInstallation={requestInstallation} onRequestDelivery={requestDelivery} />}
-          {view === 'products' && <Products presenter={presenter} onSelect={(id)=>{ setSelectedProductId(id); setView('details') }} onBuy={handleBuy} onAddToCart={handleAddToCart} onRequestInstallation={requestInstallation} onRequestDelivery={requestDelivery} />}
+          {view === 'home' && <Home 
+            presenter={presenter} 
+            setView={setView}
+            onSelect={(id) => { setSelectedProductId(id); setView('details') }} 
+            onAddToCart={handleBuy} 
+            onAddToCartOnly={handleAddToCart} 
+            onRequestInstallation={requestInstallation} 
+            onRequestDelivery={requestDelivery} 
+          />}
+          {view === 'products' && <Products 
+            presenter={presenter} 
+            onSelect={(id) => { setSelectedProductId(id); setView('details') }} 
+            onBuy={handleBuy} 
+            onAddToCart={handleAddToCart} 
+            onRequestInstallation={requestInstallation} 
+            onRequestDelivery={requestDelivery} 
+          />}
           {view === 'services' && <Services presenter={presenter} setView={setView} onRequestInstallation={requestInstallation} />}
           {view === 'about' && <AboutUs />}
           {view === 'installation' && <InstallationRequest presenter={presenter} requestContext={requestContext} />}
           {view === 'delivery' && <DeliveryRequest presenter={presenter} requestContext={requestContext} />}
-          {view === 'details' && <ProductDetails presenter={presenter} id={selectedProductId} onBack={()=>setView('products')} onBuy={handleBuy} onAddToCart={handleAddToCart} />}
-          {view === 'cart' && <Cart presenter={presenter} items={cart} onRemove={removeFromCart} onUpdateItem={updateCartItem} onCheckoutNavigate={()=>setView('checkout')} onQuoteNavigate={()=>setView('quote')} onBack={() => setView('products')} onRequestInstallation={requestInstallation} onRequestDelivery={requestDelivery} />}
-          {view === 'checkout' && <Checkout presenter={presenter} cart={cart} onRequestQuote={() => setView('quote')} onComplete={() => { setCart([]); localStorage.removeItem('etal_cart'); setView('home') }} />}
+          {view === 'details' && <ProductDetails 
+            presenter={presenter} 
+            id={selectedProductId} 
+            onBack={() => setView('products')} 
+            onBuy={handleBuy} 
+            onAddToCart={handleAddToCart} 
+          />}
+          {view === 'cart' && <Cart 
+            presenter={presenter} 
+            items={cart} 
+            onRemove={removeFromCart} 
+            onUpdateItem={updateCartItem} 
+            onCheckoutNavigate={() => setView('checkout')} 
+            onQuoteNavigate={() => setView('quote')} 
+            onBack={() => setView('products')} 
+            onRequestInstallation={requestInstallation} 
+            onRequestDelivery={requestDelivery} 
+          />}
+          {view === 'checkout' && <Checkout 
+            presenter={presenter} 
+            cart={cart} 
+            onRequestQuote={() => setView('quote')} 
+            onComplete={() => { setCart([]); localStorage.removeItem('etal_cart'); setView('home') }} 
+          />}
           {view === 'quote' && <QuoteRequest presenter={presenter} cart={cart} onComplete={() => setView('home')} />}
-          {view === 'admin' && <Admin presenter={adminPresenter} token={token} onLogout={()=>{ setToken(null); localStorage.removeItem('etal_token'); delete axios.defaults.headers.common['Authorization'] }} onAuth={(t)=>{ setToken(t) }} />}
+          {view === 'admin' && <Admin 
+            presenter={adminPresenter} 
+            token={token} 
+            onLogout={() => { setToken(null); localStorage.removeItem('etal_token'); delete axios.defaults.headers.common['Authorization'] }} 
+            onAuth={(t) => { setToken(t) }} 
+          />}
         </main>
-        <footer style={{ textAlign: 'center', padding: '20px', background: 'var(--bg-2)', marginTop: '40px', fontSize: '0.9rem', color: 'var(--muted)' }}>
-          <p>This app is designed by GOSH SOLUTIONS</p>
-          <p>Email: goshsolutions@gmail.com | Phone: +265 995 718 815</p>
+        <footer className="footer-modern">
+          <div className="footer-content-modern">
+            <div className="footer-section">
+              <h4>ETAL SHOP</h4>
+              <p>Your trusted partner for quality electronics in Malawi. We provide genuine products with professional service.</p>
+            </div>
+            <div className="footer-section">
+              <h4>Quick Links</h4>
+              <p><button onClick={() => setView('home')}>Home</button></p>
+              <p><button onClick={() => setView('products')}>Products</button></p>
+              <p><button onClick={() => setView('services')}>Services</button></p>
+              <p><button onClick={() => setView('about')}>About Us</button></p>
+            </div>
+            <div className="footer-section">
+              <h4>Contact Info</h4>
+              <p>📍 Opposite Central Hospital, Lilongwe</p>
+              <p>📞 +265 995 718 815</p>
+              <p>✉️ goshsolutions@gmail.com</p>
+            </div>
+            <div className="footer-section">
+              <h4>Business Hours</h4>
+              <p>Mon-Fri: 8:00 AM - 5:00 PM</p>
+              <p>Sat: 9:00 AM - 2:00 PM</p>
+              <p>Sun: Closed</p>
+            </div>
+          </div>
+          <div className="footer-bottom-modern">
+            <p>Designed with ❤️ by GOSH SOLUTIONS | © 2024 ETAL SHOP. All rights reserved.</p>
+          </div>
         </footer>
       </ErrorBoundary>
     </div>

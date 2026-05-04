@@ -39,45 +39,43 @@ export default function ProductCard({
   }
 
   return (
-    <div className="product-card" onClick={handleSelect}>
-      <div className="card-top">
-        <h3>{product.name}</h3>
-        <p>{product.description?.slice(0, 30)}...</p>
-      </div>
-
-      {/* IMAGE */}
-      <div className="card-image">
+    <div className="product-card-modern" onClick={handleSelect}>
+      {hasDiscount && <span className="discount-badge-modern">{product.discount_percent}% OFF</span>}
+      
+      <div className="card-image-modern">
         {product.image_url && (
           <img src={product.image_url} alt={product.name} />
         )}
       </div>
 
-      {/* BOTTOM */}
-      <div className="card-bottom">
-        {hasDiscount ? (
-          <>
-            <p className="discount-compact">
-              <span className="discount-percent">{product.discount_percent}% off</span>
-              <span className="price-old-inline">Old: {fmtMK(product.original_price)}</span>
-              <span className="price-now-inline">Now: {fmtMK(product.price)}</span>
-              <span className="saved-inline"><span className="savings-icon" aria-hidden="true">🎉</span> Saved: {fmtMK(savedAmount)}</span>
-            </p>
-          </>
-        ) : (
-          <p className="new-price">{fmtMK(product.price)}</p>
-        )}
-        <p className={stockClass}>
-          {stock <= 0 ? 'Out of stock' : `Stock: ${stock}`}
-        </p>
+      <div className="card-content-modern">
+        <h3 className="product-title-modern">{product.name}</h3>
+        <p className="product-description-modern">{product.description?.slice(0, 60)}...</p>
+
+        <div className="price-section-modern">
+          {hasDiscount ? (
+            <>
+              <span className="old-price-modern">{fmtMK(product.original_price)}</span>
+              <span className="new-price-modern">{fmtMK(product.price)}</span>
+              <span className="saved-badge-modern">Save {fmtMK(savedAmount)}</span>
+            </>
+          ) : (
+            <span className="new-price-modern">{fmtMK(product.price)}</span>
+          )}
+        </div>
+
+        <div className={`stock-badge-modern ${stockClass}`}>
+          {stock <= 0 ? 'Out of Stock' : `In Stock: ${stock}`}
+        </div>
 
         {extraContent}
 
         {showAction && (
-          <div className="card-buttons">
-            <button type="button" onClick={handleBuy} className="buy-button">
-              Buy
+          <div className="card-buttons-modern">
+            <button type="button" onClick={handleBuy} className="buy-btn-modern">
+              Buy Now
             </button>
-            <button type="button" onClick={handleAddToCart} className="add-to-cart-button">
+            <button type="button" onClick={handleAddToCart} className="cart-btn-modern">
               Add to Cart
             </button>
           </div>
