@@ -54,9 +54,7 @@ function Nav({ setView, cartCount, userRole, token }) {
           aria-expanded={menuOpen}
           onClick={() => setMenuOpen(open => !open)}
         >
-          <span className="nav-toggle-bar"></span>
-          <span className="nav-toggle-bar"></span>
-          <span className="nav-toggle-bar"></span>
+          <span className="hamburger-icon">☰</span>
         </button>
       </div>
 
@@ -65,19 +63,35 @@ function Nav({ setView, cartCount, userRole, token }) {
         <button onClick={() => handleNavigation('products')}>Products</button>
         <button onClick={() => handleNavigation('services')}>Services</button>
         <button onClick={() => handleNavigation('about')}>About Us</button>
+        {/* Mobile-only auth buttons */}
+        <div className="nav-auth-mobile mobile-only">
+          {!token && (
+            <button className="auth-button" onClick={() => handleNavigation('admin')}>
+              Login
+            </button>
+          )}
+          {userRole === 'admin' && (
+            <button className="auth-button" onClick={() => handleNavigation('admin')}>
+              Admin
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="nav-actions">
-        {!token && (
-          <button className="auth-button" onClick={() => handleNavigation('admin')}>
-            Login
-          </button>
-        )}
-        {userRole === 'admin' && (
-          <button className="auth-button" onClick={() => handleNavigation('admin')}>
-            Admin
-          </button>
-        )}
+        {/* Desktop-only auth buttons */}
+        <div className="nav-auth-desktop desktop-only">
+          {!token && (
+            <button className="auth-button" onClick={() => handleNavigation('admin')}>
+              Login
+            </button>
+          )}
+          {userRole === 'admin' && (
+            <button className="auth-button" onClick={() => handleNavigation('admin')}>
+              Admin
+            </button>
+          )}
+        </div>
         <button id="cart-nav-button" className="cart-button" onClick={() => handleNavigation('cart')}>
           🛒 Cart{cartCount ? ` (${cartCount})` : ''}
         </button>

@@ -27,14 +27,16 @@ export default function ProductCard({
   }
 
   const handleBuy = (e) => {
+    e.preventDefault()
     e.stopPropagation()
-    e.nativeEvent.stopImmediatePropagation()
+    e.nativeEvent?.stopImmediatePropagation?.()
     if (onBuy) onBuy(product, { sourceEl: e.currentTarget.closest('.product-card'), imageUrl: product.image_url })
   }
 
   const handleAddToCart = (e) => {
+    e.preventDefault()
     e.stopPropagation()
-    e.nativeEvent.stopImmediatePropagation()
+    e.nativeEvent?.stopImmediatePropagation?.()
     if (onAddToCart) onAddToCart(product, { sourceEl: e.currentTarget.closest('.product-card'), imageUrl: product.image_url })
   }
 

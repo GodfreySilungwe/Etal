@@ -309,7 +309,7 @@ body {
 .product-card-modern {
   background: var(--card-bg);
   border-radius: 1rem;
-  overflow: hidden;
+  overflow: visible;
   transition: all 0.3s ease;
   border: 1px solid rgba(200, 16, 46, 0.2);
   position: relative;
@@ -320,6 +320,7 @@ body {
   transform: translateY(-5px);
   border-color: var(--primary);
   box-shadow: 0 10px 30px rgba(200, 16, 46, 0.2);
+  z-index: 5;
 }
 
 .discount-badge-modern {
@@ -413,13 +414,10 @@ body {
     border-radius: 0.75rem;
   }
 
-  .nav-toggle-bar {
-    display: block;
-    width: 22px;
-    height: 2px;
-    margin: 4px 0;
-    background: white;
-    border-radius: 1px;
+  .hamburger-icon {
+    font-size: 1.5rem;
+    color: white;
+    line-height: 1;
   }
 
   .nav-actions {
@@ -566,6 +564,9 @@ body {
   display: flex;
   gap: 0.5rem;
   margin-top: 0.5rem;
+  position: relative;
+  z-index: 10;
+  pointer-events: auto;
 }
 
 .buy-btn-modern,
@@ -577,6 +578,9 @@ body {
   font-size: 0.8rem;
   cursor: pointer;
   transition: all 0.2s ease;
+  position: relative;
+  z-index: 15;
+  pointer-events: auto;
 }
 
 .buy-btn-modern {
@@ -598,6 +602,12 @@ body {
 
 .cart-btn-modern:hover {
   background: rgba(200, 16, 46, 0.1);
+}
+
+.product-card-modern:hover .buy-btn-modern,
+.product-card-modern:hover .cart-btn-modern {
+  pointer-events: auto;
+  z-index: 20;
 }
 
 /* Loading State */
@@ -1082,9 +1092,31 @@ body {
     justify-content: flex-start;
   }
 
+  .nav-auth-mobile {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .nav-auth-mobile .auth-button {
+    width: 100%;
+    justify-content: flex-start;
+    margin-bottom: 0.5rem;
+  }
+
+  .nav-auth-desktop {
+    display: flex;
+  }
+
   .nav-actions {
     margin-top: 0.75rem;
     gap: 10px;
+    display: flex;
+    align-items: center;
+  }
+
+  .cart-button {
+    display: inline-flex !important;
   }
 
   .hero-title {
