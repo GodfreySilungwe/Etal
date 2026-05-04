@@ -6,6 +6,7 @@ function Home({ presenter, onSelect, onAddToCart, onAddToCartOnly, onRequestInst
   const [categories, setCategories] = useState([])
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState('')
 
   useEffect(() => {
     async function load() {
@@ -26,8 +27,13 @@ function Home({ presenter, onSelect, onAddToCart, onAddToCartOnly, onRequestInst
     load()
   }, [presenter])
 
+  const normalizedSearch = searchTerm.trim().toLowerCase()
+  const filteredProducts = normalizedSearch
+    ? products.filter(p => `${p.name} ${p.description || ''}`.toLowerCase().includes(normalizedSearch))
+    : products
+
   const productsByCategory = categories.reduce((acc, cat) => {
-    acc[cat.id] = products.filter(p => p.category_id === cat.id)
+    acc[cat.id] = filteredProducts.filter(p => p.category_id === cat.id)
     return acc
   }, {})
 
@@ -51,6 +57,27 @@ function Home({ presenter, onSelect, onAddToCart, onAddToCartOnly, onRequestInst
         </div>
       </div>
 
+      <div className="search-section-modern">
+        <div className="search-card-modern">
+          <div className="search-header-modern">
+            <h2>Find the right product fast</h2>
+            <p>Search across product names and descriptions with a single keyword.</p>
+          </div>
+          <div className="search-input-group-modern">
+            <input
+              type="search"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search products, brands, or features"
+              className="search-input-modern"
+            />
+            {searchTerm && (
+              <button type="button" className="search-clear-modern" onClick={() => setSearchTerm('')}>Clear</button>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Features Cards */}
       <div className="features-grid">
         <div className="feature-card">
@@ -69,6 +96,8 @@ function Home({ presenter, onSelect, onAddToCart, onAddToCartOnly, onRequestInst
           <p>Cash, Card, or Mobile Money accepted</p>
         </div>
       </div>
+
+
 
       {/* Products Section */}
       <div className="products-section">
@@ -103,13 +132,26 @@ function Home({ presenter, onSelect, onAddToCart, onAddToCartOnly, onRequestInst
             return categoryCards
           }
 
+          if (filteredProducts.length === 0) {
+            return (
+              <div className="category-section">
+                <div className="category-header">
+                  <h2 className="category-title-modern">No matching products</h2>
+                </div>
+                <div className="loading-container">
+                  <p>We couldn't find any products for that search. Try another keyword or clear your search.</p>
+                </div>
+              </div>
+            )
+          }
+
           return (
             <div className="category-section">
               <div className="category-header">
                 <h2 className="category-title-modern">All Products</h2>
               </div>
               <div className="grid">
-                {products.map(p => (
+                {filteredProducts.map(p => (
                   <ProductCard
                     key={p.id}
                     product={p}

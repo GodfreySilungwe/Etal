@@ -30,26 +30,55 @@ function decodeJWT(token) {
   }
 }
 
-function Nav({ setView, cartCount, userRole, token, presenter }) {
+function Nav({ setView, cartCount, userRole, token }) {
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  const handleNavigation = (view) => {
+    setView(view)
+    setMenuOpen(false)
+  }
+
   return (
     <nav className="nav">
-      <div className="nav-group" style={{ alignItems: 'center' }}>
+      <div className="nav-left">
         <img
           src={LOGO_URL}
           alt="ETAL Logo"
-          className="desktop-only"
-          style={{ height: '40px', marginRight: '20px', cursor: 'pointer' }}
-          onClick={() => { setView('home') }}
+          className="nav-logo"
+          onClick={() => handleNavigation('home')}
         />
-        <button onClick={() => { setView('home') }}>Home</button>
-        <button onClick={() => { setView('products') }}>Products</button>
-        <button onClick={() => { setView('services') }}>Services</button>
-        <button className="desktop-only" onClick={() => { setView('about') }}>About Us</button>
-        {!token && <button className="desktop-only" onClick={() => { setView('admin') }}>Login</button>}
-        {userRole === 'admin' && <button className="desktop-only" onClick={() => { setView('admin') }}>Admin</button>}
+        <button
+          type="button"
+          className="nav-toggle mobile-only"
+          aria-label="Toggle navigation menu"
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen(open => !open)}
+        >
+          <span className="nav-toggle-bar"></span>
+          <span className="nav-toggle-bar"></span>
+          <span className="nav-toggle-bar"></span>
+        </button>
       </div>
-      <div className="nav-group" style={{ justifyContent: 'flex-end', alignItems: 'center' }}>
-        <button id="cart-nav-button" onClick={() => { setView('cart') }}>
+
+      <div className={`nav-menu ${menuOpen ? 'open' : ''}`}>
+        <button onClick={() => handleNavigation('home')}>Home</button>
+        <button onClick={() => handleNavigation('products')}>Products</button>
+        <button onClick={() => handleNavigation('services')}>Services</button>
+        <button onClick={() => handleNavigation('about')}>About Us</button>
+      </div>
+
+      <div className="nav-actions">
+        {!token && (
+          <button className="auth-button" onClick={() => handleNavigation('admin')}>
+            Login
+          </button>
+        )}
+        {userRole === 'admin' && (
+          <button className="auth-button" onClick={() => handleNavigation('admin')}>
+            Admin
+          </button>
+        )}
+        <button id="cart-nav-button" className="cart-button" onClick={() => handleNavigation('cart')}>
           🛒 Cart{cartCount ? ` (${cartCount})` : ''}
         </button>
       </div>
